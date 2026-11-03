@@ -13,121 +13,75 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - format: ipk
+            label: "OpenWrt 24.10 (opkg / ipk)"
+            sdk_index: "https://downloads.openwrt.org/releases/24.10.0/targets/x86/64/"
+          - format: apk
+            label: "OpenWrt snapshot (apk-tools 3 / apk)"
+            sdk_index: "https://downloads.openwrt.org/snapshots/targets/x86/64/"
+
+    name: build-${{ matrix.format }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Prepare output dir
-        run: |
-          rm -rf /tmp/out
-          mkdir -p /tmp/out
+      - name: Build with official OpenWrt SDK (${{ matrix.label }})
+        run: bash Scripts/ci-build.sh "${{ matrix.format }}" "${{ matrix.sdk_index }}"
 
-      - name: Package ipk (arch=all)
-        run: |
-          set -e
-          V="1.0.0-r1"
-          P="luci-app-static-gw"
-          D=/tmp/pkg-ipk
-          rm -rf $D
-          mkdir -p $D/CONTROL $D/usr/share/luci/menu.d $D/usr/share/rpcd/acl.d $D/www/luci-static/resources/view/network
-
-          cp root/usr/share/luci/menu.d/luci-app-static-gw.json $D/usr/share/luci/menu.d/
-          cp root/usr/share/rpcd/acl.d/luci-app-static-gw.json $D/usr/share/rpcd/acl.d/
-          cp htdocs/luci-static/resources/view/network/static-gw.js $D/www/luci-static/resources/view/network/
-
-          cat > $D/CONTROL/control <<EOF
-Package: $P
-Version: $V
-Depends: luci-base, rpcd-mod-luci
-Architecture: all
-Section: luci
-Priority: optional
-Maintainer: Lemonade-22
-Description: Static Address Binding (per-host gateway/DNS)
-EOF
-          cat > $D/CONTROL/postinst <<'EOP'
-#!/bin/sh
-[ -n "${IPKG_INSTROOT}" ] || /etc/init.d/rpcd reload >/dev/null 2>&1 || true
-exit 0
-EOP
-          chmod 755 $D/CONTROL/postinst
-          echo "2.0" > $D/debian-binary
-          (cd $D && tar --owner=0 --group=0 -czf control.tar.gz CONTROL/ && tar --owner=0 --group=0 -czf data.tar.gz usr www)
-          (cd $D && tar --owner=0 --group=0 -czf /tmp/out/${P}_${V}_all.ipk debian-binary control.tar.gz data.tar.gz)
-          echo "ipk ready"
-
-      - name: Package apk (arch=all)
-        run: |
-          set -e
-          V="1.0.0-r1"
-          P="luci-app-static-gw"
-          D=/tmp/pkg-apk
-          rm -rf $D
-          mkdir -p $D/CONTROL $D/usr/share/luci/menu.d $D/usr/share/rpcd/acl.d $D/www/luci-static/resources/view/network
-
-          cp root/usr/share/luci/menu.d/luci-app-static-gw.json $D/usr/share/luci/menu.d/
-          cp root/usr/share/rpcd/acl.d/luci-app-static-gw.json $D/usr/share/rpcd/acl.d/
-          cp htdocs/luci-static/resources/view/network/static-gw.js $D/www/luci-static/resources/view/network/
-
-          cat > $D/CONTROL/control <<EOF
-Package: $P
-Version: $V
-Depends: luci-base, rpcd-mod-luci
-Architecture: all
-Section: luci
-Priority: optional
-Maintainer: Lemonade-22
-Description: Static Address Binding (per-host gateway/DNS)
-EOF
-          cat > $D/CONTROL/postinst <<'EOP'
-#!/bin/sh
-[ -n "${IPKG_INSTROOT}" ] || /etc/init.d/rpcd reload >/dev/null 2>&1 || true
-exit 0
-EOP
-          chmod 755 $D/CONTROL/postinst
-          echo "2.0" > $D/debian-binary
-          (cd $D && tar --owner=0 --group=0 -czf control.tar.gz CONTROL/ && tar --owner=0 --group=0 -czf data.tar.gz usr www)
-          (cd $D && tar --owner=0 --group=0 -czf /tmp/out/${P}_${V}_all.apk debian-binary control.tar.gz data.tar.gz)
-          echo "apk ready"
-
-      - name: Upload artifacts
+      - name: Upload ${{ matrix.format }} artifact
         uses: actions/upload-artifact@v4
         with:
-          name: packages
-          path: /tmp/out/
+          name: packages-${{ matrix.format }}
+          path: ${{ runner.temp }}/out/
           retention-days: 30
+          if-no-files-found: error
 
   release:
+    name: publish-latest
     needs: build
     runs-on: ubuntu-latest
     if: github.event_name != 'pull_request'
     steps:
-      - name: Download
+      - name: Download all packages
         uses: actions/download-artifact@v4
         with:
-          name: packages
-          path: pkg
+          path: dist
+          merge-multiple: true
 
-      - name: Collect
-        run: |
-          find pkg -type f \( -name "*.ipk" -o -name "*.apk" \) -exec cp {} . \;
-          ls -lh *.ipk *.apk 2>/dev/null || ls -lh
+      - name: Show collected packages
+        run: ls -lh dist
 
-      - name: Release
+      - name: Publish to the 'latest' release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: latest
           name: Latest Continuous Build
           draft: false
           prerelease: true
-          files: |
-            *.ipk
-            *.apk
           generate_release_notes: false
+          files: |
+            dist/*.ipk
+            dist/*.apk
           body: |
-            Automatic build from ${{ github.sha }}
+            Automatic build from commit ${{ github.sha }}.
 
-            - `luci-app-static-gw_*_all.ipk` — OpenWrt 24.10 / opkg (all)
-            - `luci-app-static-gw_*_all.apk` — OpenWrt 25+ / apk (all)
+            | File | Target |
+            | --- | --- |
+            | `luci-app-static-gw_*_all.ipk` | OpenWrt 24.10 and older (opkg) |
+            | `luci-app-static-gw_*_all.apk` | OpenWrt snapshot / 25.x (apk) |
+
+            Both packages are `Architecture: all` - the application contains
+            only LuCI JS/JSON and translations, no compiled code, so one file
+            serves every device.
+
+            Install:
+            ```sh
+            opkg install luci-app-static-gw_*_all.ipk
+            apk add --allow-untrusted luci-app-static-gw_*_all.apk
+            ```
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
