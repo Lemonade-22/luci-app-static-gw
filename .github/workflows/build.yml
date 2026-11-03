@@ -13,17 +13,6 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - name: "OpenWrt 24.10 (ipk)"
-            package_format: "ipk"
-            version: "1.0.0-r1"
-          - name: "OpenWrt main (apk)"
-            package_format: "apk"
-            version: "1.0.0-r1"
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -33,11 +22,10 @@ jobs:
           rm -rf /tmp/artifacts
           mkdir -p /tmp/artifacts
 
-      - name: Manual arch=all packaging
+      - name: Build both arch=all ipk and apk (pure manual packaging)
         run: |
           set -e
-          VERSION="${{ matrix.version }}"
-          FORMAT="${{ matrix.package_format }}"
+          VERSION="1.0.0-r1"
           PKGNAME="luci-app-static-gw"
           OUTDIR=/tmp/artifacts
 
@@ -83,24 +71,20 @@ EOP
           (cd $PKGDIR && tar --owner=0 --group=0 -czf control.tar.gz CONTROL/)
           (cd $PKGDIR && tar --owner=0 --group=0 -czf data.tar.gz usr www)
 
-          if [ "$FORMAT" = "ipk" ]; then
-            IPK_FILE="${PKGNAME}_${VERSION}_all.ipk"
-            (cd $PKGDIR && tar --owner=0 --group=0 -czf /tmp/$IPK_FILE debian-binary control.tar.gz data.tar.gz)
-            cp /tmp/$IPK_FILE $OUTDIR/
-          else
-            # For apk job we still produce a real .apk name (content is identical tar for pure data package)
-            APK_FILE="${PKGNAME}_${VERSION}_all.apk"
-            (cd $PKGDIR && tar --owner=0 --group=0 -czf /tmp/$APK_FILE debian-binary control.tar.gz data.tar.gz)
-            cp /tmp/$APK_FILE $OUTDIR/
-          fi
+          IPK_FILE="${PKGNAME}_${VERSION}_all.ipk"
+          (cd $PKGDIR && tar --owner=0 --group=0 -czf /tmp/$IPK_FILE debian-binary control.tar.gz data.tar.gz)
+          cp /tmp/$IPK_FILE $OUTDIR/
 
-          echo "=== Produced for $FORMAT ==="
+          APK_FILE="${PKGNAME}_${VERSION}_all.apk"
+          cp /tmp/$IPK_FILE $OUTDIR/$APK_FILE
+
+          echo "=== Produced packages ==="
           ls -lh $OUTDIR/
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: packages-${{ matrix.package_format }}
+          name: packages
           path: /tmp/artifacts/
           retention-days: 30
 
@@ -109,24 +93,16 @@ EOP
     runs-on: ubuntu-latest
     if: github.event_name != 'pull_request'
     steps:
-      - name: Download ipk artifact
+      - name: Download packages
         uses: actions/download-artifact@v4
         with:
-          name: packages-ipk
-          path: artifacts-ipk
+          name: packages
+          path: artifacts
 
-      - name: Download apk artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: packages-apk
-          path: artifacts-apk
-
-      - name: Collect packages to root
+      - name: Collect to root
         run: |
-          mkdir -p .
-          find artifacts-ipk -type f \( -name "*.ipk" -o -name "*.apk" \) -exec cp {} . \;
-          find artifacts-apk -type f \( -name "*.ipk" -o -name "*.apk" \) -exec cp {} . \;
-          echo "=== Files ready for release ==="
+          find artifacts -type f \( -name "*.ipk" -o -name "*.apk" \) -exec cp {} . \;
+          echo "=== Ready for release ==="
           ls -lh *.ipk *.apk 2>/dev/null || ls -lh
 
       - name: Upload to GitHub Release (latest tag)
@@ -146,6 +122,6 @@ EOP
             - `luci-app-static-gw_*_all.ipk` — OpenWrt 24.10 / opkg (Architecture: all)
             - `luci-app-static-gw_*_all.apk` — OpenWrt 25+ / apk (Architecture: all)
 
-            Both packages are pure data packages (no compiled code).
+            Both are pure data packages (no compiled code).
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
