@@ -1,0 +1,192 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: zh_Hans\n"
+
+#: htdocs/luci-static/resources/view/network/static-gw.js:1
+msgid "Static Address Binding"
+msgstr "静态地址绑定"
+
+#: htdocs/luci-static/resources/view/network/static-gw.js:2
+msgid "Bind fixed IPv4 addresses to MAC and optionally override gateway (option 3) and DNS (option 6) for individual clients."
+msgstr "将固定 IPv4 地址绑定到 MAC，并可为指定客户端下发自定义网关（DHCP option 3）和 DNS（option 6）。"
+
+#: htdocs/luci-static/resources/view/network/static-gw.js:3
+msgid "LAN: "
+msgstr "LAN："
+
+#: htdocs/luci-static/resources/view/network/static-gw.js:4
+msgid "DHCP pool: "
+msgstr "DHCP 地址池："
+
+#: htdocs/luci-static/resources/view/network/static-gw.js:5
+msgid "(from interface config)"
+msgstr "（来自接口配置）"
+
+#: htdocs/luci-static/resources/view/network/static-gw.js:6
+msgid "Default gateway: "
+msgstr "默认网关："
+
+#: htdocs/luci-static/resources/view/network/static-gw.js:7
+msgid "System default (undetermined)"
+msgstr "系统默认（未确定）"
+
+#: htdocs/luci-static/resources/view/network/static-gw.js:8
+msgid "Editing disabled: "
+msgstr "编辑已禁用："
+
+#: htdocs/luci-static/resources/view/network/static-gw.js:9
+msgid "LAN interface is not configured as static IPv4"
+msgstr "LAN 接口未配置为静态 IPv4"
+
+#: htdocs/luci-static/resources/view/network/static-gw.js:10
+msgid "LAN has no IPv4 address configured"
+msgstr "LAN 未配置 IPv4 地址"
+
+#: htdocs/luci-static/resources/view/network/static-gw.js:11
+msgid "Cannot determine LAN subnet"
+msgstr "无法确定 LAN 子网"
+
+#: htdocs/luci-static/resources/view/network/static-gw.js:12
+msgid "No active DHCPv4 configuration for LAN"
+msgstr "LAN 没有活动的 DHCPv4 配置"
+
+#: htdocs/luci-static/resources/view/network/static-gw.js:13
+msgid "Multiple dnsmasq instances detected"
+msgstr "检测到多个 dnsmasq 实例"
+
+#: htdocs/luci-static/resources/view/network/static-gw.js:14
+msgid "Static Bindings"
+msgstr "静态绑定"
+
+#: htdocs/luci-static/resources/view/network/static-gw.js:15
+msgid "Edit static binding"
+msgstr "编辑静态绑定"
+
+#: htdocs/luci-static/resources/view/network/static-gw.js:16
+msgid "Hostname"
+msgstr "主机名"
+
+#: htdocs/luci-static/resources/view/network/static-gw.js:17
+msgid "Hostname or MAC address is required"
+msgstr "必须填写主机名或 MAC 地址"
+
+#: htdocs/luci-static/resources/view/network/static-gw.js:18
+msgid "MAC Address"
+msgstr "MAC 地址"
+
+#: htdocs/luci-static/resources/view/network/static-gw.js:19
+msgid "Expecting a valid MAC address"
+msgstr "需要有效的 MAC 地址"
+
+#: htdocs/luci-static/resources/view/network/static-gw.js:20
+msgid "MAC must be a valid unicast address"
+msgstr "MAC 必须是有效的单播地址"
+
+#: htdocs/luci-static/resources/view/network/static-gw.js:21
+msgid "MAC address already used by another binding"
+msgstr "MAC 地址已被其他绑定使用"
+
+#: htdocs/luci-static/resources/view/network/static-gw.js:22
+msgid "Fixed IPv4"
+msgstr "固定 IPv4"
+
+#: htdocs/luci-static/resources/view/network/static-gw.js:23
+msgid "Fixed IPv4 address is required"
+msgstr "必须填写固定 IPv4 地址"
+
+#: htdocs/luci-static/resources/view/network/static-gw.js:24
+msgid "Address is outside the LAN subnet"
+msgstr "地址不在 LAN 子网内"
+
+#: htdocs/luci-static/resources/view/network/static-gw.js:25
+msgid "Cannot use network or broadcast address"
+msgstr "不能使用网络地址或广播地址"
+
+#: htdocs/luci-static/resources/view/network/static-gw.js:26
+msgid "Cannot bind the router address itself"
+msgstr "不能绑定路由器自身地址"
+
+#: htdocs/luci-static/resources/view/network/static-gw.js:27
+msgid "IPv4 already used by another binding"
+msgstr "IPv4 已被其他绑定使用"
+
+#: htdocs/luci-static/resources/view/network/static-gw.js:28
+msgid "Address currently leased to another device"
+msgstr "地址当前已被另一台设备租用"
+
+#: htdocs/luci-static/resources/view/network/static-gw.js:29
+msgid "Gateway"
+msgstr "网关"
+
+#: htdocs/luci-static/resources/view/network/static-gw.js:30
+msgid "Inherit system"
+msgstr "继承系统"
+
+#: htdocs/luci-static/resources/view/network/static-gw.js:31
+msgid "Decided by other rules"
+msgstr "由其他规则决定"
+
+#: htdocs/luci-static/resources/view/network/static-gw.js:32
+msgid "Gateway must be inside the LAN subnet"
+msgstr "网关必须在 LAN 子网内"
+
+#: htdocs/luci-static/resources/view/network/static-gw.js:33
+msgid "Gateway cannot be network or broadcast address"
+msgstr "网关不能是网络地址或广播地址"
+
+#: htdocs/luci-static/resources/view/network/static-gw.js:34
+msgid "Gateway cannot be the same as the fixed IP"
+msgstr "网关不能与固定 IP 相同"
+
+#: htdocs/luci-static/resources/view/network/static-gw.js:35
+msgid "Also send as DNS"
+msgstr "同时指定为 DNS"
+
+#: htdocs/luci-static/resources/view/network/static-gw.js:36
+msgid "Lease time"
+msgstr "租期"
+
+#: htdocs/luci-static/resources/view/network/static-gw.js:37
+msgid "Inherit from pool"
+msgstr "继承地址池"
+
+#: htdocs/luci-static/resources/view/network/static-gw.js:38
+msgid "5 minutes"
+msgstr "5 分钟"
+
+#: htdocs/luci-static/resources/view/network/static-gw.js:39
+msgid "30 minutes"
+msgstr "30 分钟"
+
+#: htdocs/luci-static/resources/view/network/static-gw.js:40
+msgid "1 hour"
+msgstr "1 小时"
+
+#: htdocs/luci-static/resources/view/network/static-gw.js:41
+msgid "12 hours"
+msgstr "12 小时"
+
+#: htdocs/luci-static/resources/view/network/static-gw.js:42
+msgid "24 hours"
+msgstr "24 小时"
+
+#: htdocs/luci-static/resources/view/network/static-gw.js:43
+msgid "7 days"
+msgstr "7 天"
+
+#: htdocs/luci-static/resources/view/network/static-gw.js:44
+msgid "Infinite"
+msgstr "永久"
+
+#: htdocs/luci-static/resources/view/network/static-gw.js:45
+msgid "Invalid lease time format (e.g. 12h, 7d)"
+msgstr "租期格式无效（例如 12h、7d）"
+
+#: htdocs/luci-static/resources/view/network/static-gw.js:46
+msgid "Status"
+msgstr "状态"
+
+#: htdocs/luci-static/resources/view/network/static-gw.js:47
+msgid "Read-only (manage in official DHCP page)"
+msgstr "只读（请在官方 DHCP 页面管理）"
