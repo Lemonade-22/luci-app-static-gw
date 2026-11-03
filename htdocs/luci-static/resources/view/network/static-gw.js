@@ -432,7 +432,9 @@ return view.extend({
 		]);
 	},
 
-	render([hosts, leases, devices, nets]) {
+	// load() resolves in declaration order:
+	// [ uci dhcp, uci network, host hints, dhcp leases, network devices, networks ]
+	render([, , hosts, leases, devices, nets]) {
 		const top = getLanTopology();
 		const defaultGw = getEffectiveDefaultGateway(top);
 		const pool = getDynamicPool(top);
@@ -466,9 +468,7 @@ return view.extend({
 				E('br'),
 				E('strong', _t('DHCP pool: ')), pool || _t('not detected - inheriting interface configuration'),
 				E('br'),
-				E('strong', _t('Default gateway: ')), defaultGw,
-				E('br'),
-				E('small', { class: 'muted' }, 'luci-app-static-gw v' + APP_VERSION)
+				E('strong', _t('Default gateway: ')), defaultGw
 			])
 		];
 
