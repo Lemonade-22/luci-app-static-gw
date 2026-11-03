@@ -34,14 +34,47 @@ make package/luci-app-static-gw/compile
 
 Both `.ipk` (24.10/opkg) and `.apk` (25+/apk) are produced when built with the matching SDK. The package is `Architecture: all`.
 
-### Manual install (arch-independent)
+### Prebuilt packages (GitHub Releases)
 
-Copy the built `luci-app-static-gw*.ipk` or `luci-app-static-gw*.apk` to the device and install:
+Every push to `main` rebuilds both formats and publishes them to the
+`latest` release:
+
+| File | Target |
+| --- | --- |
+| `luci-app-static-gw_*_all.ipk` | OpenWrt 24.10 and older (opkg) |
+| `luci-app-static-gw-*.apk` | OpenWrt snapshot / 25.x (apk) |
+| `luci-app-static-gw-signing-key.pem` | public key that signed the `.apk` |
+
+Both packages are `Architecture: all` — they contain only LuCI JS/JSON and
+translations, so one file serves every device.
+
+### Install on opkg (24.10)
 
 ```sh
-opkg install luci-app-static-gw_*.ipk
-# or
-apk add luci-app-static-gw*.apk
+opkg install luci-app-static-gw_*_all.ipk
+```
+
+### Install on apk (snapshot / 25.x)
+
+The `.apk` is signed with this repository's CI build key. A device does not
+trust that key by default, which surfaces as:
+
+```
+ERROR: /tmp/upload.apk: UNTRUSTED signature
+```
+(`apk install` exits with code 99.)
+
+Trust the key once, then install normally:
+
+```sh
+cp luci-app-static-gw-signing-key.pem /etc/apk/keys/
+apk add luci-app-static-gw-*.apk
+```
+
+Or install a single time without trusting the key:
+
+```sh
+apk add --allow-untrusted luci-app-static-gw-*.apk
 ```
 
 Then refresh LuCI (or `luci-reload`).
