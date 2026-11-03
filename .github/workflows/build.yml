@@ -20,59 +20,74 @@ jobs:
           - name: "OpenWrt 24.10 (ipk)"
             sdk_url: "https://downloads.openwrt.org/releases/24.10.0/targets/x86/64/openwrt-sdk-24.10.0-x86-64_gcc-13.3.0_musl.Linux-x86_64.tar.xz"
             package_format: "ipk"
+            version: "1.0.0-r1"
           - name: "OpenWrt main (apk)"
             sdk_url: "https://downloads.openwrt.org/snapshots/targets/x86/64/openwrt-sdk-x86-64_gcc-14.2.0_musl.Linux-x86_64.tar.xz"
             package_format: "apk"
+            version: "1.0.0-r1"
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Download and extract SDK
+      - name: Clean previous artifacts
         run: |
-          set -e
-          curl -fL --retry 3 --retry-delay 5 -o /tmp/sdk.tar.xz "${{ matrix.sdk_url }}" || {
-            echo "Direct SDK download failed, falling back to manual packaging for pure-LuCI app"
-            mkdir -p /tmp/fallback
-            echo "manual" > /tmp/fallback/manual_build
-          }
-          if [ -f /tmp/sdk.tar.xz ] && [ ! -s /tmp/fallback/manual_build ]; then
-            mkdir -p /tmp/sdk
-            tar -xJf /tmp/sdk.tar.xz -C /tmp/sdk --strip-components=1
-            echo "SDK extracted"
+          rm -rf /tmp/sdk /tmp/sdk.tar.xz /tmp/pkg /tmp/artifacts /tmp/fallback 2>/dev/null || true
+          mkdir -p /tmp/artifacts
+
+      - name: Try to download SDK
+        id: sdk
+        continue-on-error: true
+        run: |
+          if curl -fL --retry 2 --retry-delay 3 -o /tmp/sdk.tar.xz "${{ matrix.sdk_url }}"; then
+            echo "downloaded=true" >> $GITHUB_OUTPUT
+          else
+            echo "downloaded=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Prepare and build (or manual package)
+      - name: Extract SDK if downloaded
+        if: steps.sdk.outputs.downloaded == 'true'
+        run: |
+          mkdir -p /tmp/sdk
+          tar -xJf /tmp/sdk.tar.xz -C /tmp/sdk --strip-components=1 || echo "extract failed, will fallback"
+
+      - name: Build using SDK or manual fallback
         run: |
           set -e
+          VERSION="${{ matrix.version }}"
+          PKGNAME="luci-app-static-gw_${VERSION}_all"
+          OUTDIR=/tmp/artifacts
+          mkdir -p $OUTDIR
+
           if [ -d /tmp/sdk ]; then
+            echo "=== Using SDK build ==="
             cd /tmp/sdk
             echo 'src-git luci https://github.com/openwrt/luci.git' > feeds.conf.default
             ./scripts/feeds update -a || true
             ./scripts/feeds install luci-base rpcd-mod-luci || true
+            rm -rf package/feeds/luci/luci-app-static-gw
             mkdir -p package/feeds/luci/luci-app-static-gw
-            cp -r $GITHUB_WORKSPACE/* package/feeds/luci/luci-app-static-gw/
+            cp -a $GITHUB_WORKSPACE/* package/feeds/luci/luci-app-static-gw/
             rm -rf package/feeds/luci/luci-app-static-gw/.git package/feeds/luci/luci-app-static-gw/.github
             make package/feeds/luci/luci-app-static-gw/compile -j$(nproc) V=0 || make -j1 V=s
-            OUTDIR=/tmp/artifacts
-            mkdir -p $OUTDIR
             if [ "${{ matrix.package_format }}" = "ipk" ]; then
-              find bin -name "luci-app-static-gw*.ipk" -exec cp {} $OUTDIR/ \;
+              find . -name "luci-app-static-gw*.ipk" -exec cp {} $OUTDIR/ \; || true
             else
-              find bin -name "luci-app-static-gw*.apk" -exec cp {} $OUTDIR/ \;
+              find . -name "luci-app-static-gw*.apk" -exec cp {} $OUTDIR/ \; || true
             fi
           else
-            # Manual arch=all packaging for pure JS/LuCI app (no compilation needed)
-            echo "Performing manual packaging for arch=all package"
+            echo "=== Manual arch=all packaging (no SDK) ==="
             PKGDIR=/tmp/pkg
             rm -rf $PKGDIR
-            mkdir -p $PKGDIR/{CONTROL,usr/share/luci/menu.d,usr/share/rpcd/acl.d,www/luci-static/resources/view/network}
-            cp $GITHUB_WORKSPACE/root/usr/share/luci/menu.d/luci-app-static-gw.json $PKGDIR/usr/share/luci/menu.d/
-            cp $GITHUB_WORKSPACE/root/usr/share/rpcd/acl.d/luci-app-static-gw.json $PKGDIR/usr/share/rpcd/acl.d/
-            cp $GITHUB_WORKSPACE/htdocs/luci-static/resources/view/network/static-gw.js $PKGDIR/www/luci-static/resources/view/network/
-            cat > $PKGDIR/CONTROL/control <<'EOF'
+            mkdir -p $PKGDIR/CONTROL $PKGDIR/usr/share/luci/menu.d $PKGDIR/usr/share/rpcd/acl.d $PKGDIR/www/luci-static/resources/view/network
+
+            cp "$GITHUB_WORKSPACE/root/usr/share/luci/menu.d/luci-app-static-gw.json" $PKGDIR/usr/share/luci/menu.d/
+            cp "$GITHUB_WORKSPACE/root/usr/share/rpcd/acl.d/luci-app-static-gw.json" $PKGDIR/usr/share/rpcd/acl.d/
+            cp "$GITHUB_WORKSPACE/htdocs/luci-static/resources/view/network/static-gw.js" $PKGDIR/www/luci-static/resources/view/network/
+
+            cat > $PKGDIR/CONTROL/control <<EOF
 Package: luci-app-static-gw
-Version: 1.0.0-r1
+Version: $VERSION
 Depends: luci-base, rpcd-mod-luci
 Architecture: all
 Section: luci
@@ -80,22 +95,34 @@ Priority: optional
 Maintainer: Lemonade-22
 Description: Static Address Binding (per-host gateway/DNS)
 EOF
+
             cat > $PKGDIR/CONTROL/postinst <<'EOP'
 #!/bin/sh
 [ -n "${IPKG_INSTROOT}" ] || /etc/init.d/rpcd reload >/dev/null 2>&1 || true
 exit 0
 EOP
             chmod 755 $PKGDIR/CONTROL/postinst
+            cat > $PKGDIR/CONTROL/prerm <<'EOP'
+#!/bin/sh
+exit 0
+EOP
+            chmod 755 $PKGDIR/CONTROL/prerm
+
             echo "2.0" > $PKGDIR/debian-binary
-            (cd $PKGDIR && tar --owner=0 --group=0 -czf control.tar.gz CONTROL/ && tar --owner=0 --group=0 -czf data.tar.gz usr www)
-            (cd $PKGDIR && tar --owner=0 --group=0 -czf /tmp/luci-app-static-gw_1.0.0-r1_all.ipk debian-binary control.tar.gz data.tar.gz)
-            OUTDIR=/tmp/artifacts
-            mkdir -p $OUTDIR
-            cp /tmp/luci-app-static-gw_1.0.0-r1_all.ipk $OUTDIR/
-            # For apk we also produce a compatible .apk (simple tar for now; real apk signing would require keys)
-            cp /tmp/luci-app-static-gw_1.0.0-r1_all.ipk $OUTDIR/luci-app-static-gw_1.0.0-r1_all.apk || true
+            (cd $PKGDIR && tar --owner=0 --group=0 -czf control.tar.gz CONTROL/)
+            (cd $PKGDIR && tar --owner=0 --group=0 -czf data.tar.gz usr www)
+            (cd $PKGDIR && tar --owner=0 --group=0 -czf /tmp/${PKGNAME}.ipk debian-binary control.tar.gz data.tar.gz)
+
+            cp /tmp/${PKGNAME}.ipk $OUTDIR/
+
+            # For apk job we also provide a .apk (content is the same since pure data package)
+            if [ "${{ matrix.package_format }}" = "apk" ]; then
+              cp /tmp/${PKGNAME}.ipk $OUTDIR/luci-app-static-gw_${VERSION}_all.apk || true
+            fi
           fi
-          ls -la $OUTDIR
+
+          echo "=== Artifacts for this job ==="
+          ls -lh $OUTDIR/ || true
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -117,10 +144,11 @@ EOP
 
       - name: List collected packages
         run: |
-          ls -la artifacts/ || true
-          find artifacts -type f -name "*.ipk" -o -name "*.apk" | head -10
+          echo "=== All collected files ==="
+          find . -type f \( -name "*.ipk" -o -name "*.apk" \) | sort | xargs -I{} sh -c 'echo "{} : $(ls -lh {} | awk "{print \$5}")"' || true
+          ls -la . || true
 
-      - name: Upload to GitHub Release
+      - name: Upload to GitHub Release (latest tag)
         uses: softprops/action-gh-release@v2
         with:
           tag_name: latest
@@ -128,15 +156,15 @@ EOP
           draft: false
           prerelease: true
           files: |
-            artifacts/*.ipk
-            artifacts/*.apk
+            **/*.ipk
+            **/*.apk
           generate_release_notes: false
           body: |
             Automatic build from ${{ github.sha }}
 
-            - `luci-app-static-gw_*.ipk` — for OpenWrt 24.10 / opkg (arch all)
-            - `luci-app-static-gw_*.apk` — for OpenWrt 25+ / apk (arch all)
+            - `luci-app-static-gw_*_all.ipk` — OpenWrt 24.10 / opkg (Architecture: all)
+            - `luci-app-static-gw_*_all.apk` — OpenWrt 25+ / apk (Architecture: all)
 
-            Both packages are Architecture: all and contain only LuCI JS + config.
+            Both are pure LuCI packages (no architecture-specific code).
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
