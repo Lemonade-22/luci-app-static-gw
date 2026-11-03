@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Verify that every _t('...') string used by the view is translated.
 
-Checks both the committed ZH_MAP in the view and the po file, so the built-in
+Checks both the committed EN_MAP in the view and the po file, so the built-in
 fallback can never drift from the translation source.
 
 Usage: python3 Scripts/tests/check-i18n.py
@@ -13,7 +13,7 @@ from pathlib import Path
 
 root = Path(__file__).resolve().parents[2]
 js = (root / "htdocs/luci-static/resources/view/network/static-gw.js").read_text(encoding="utf-8")
-po = (root / "po/zh_Hans/luci-app-static-gw.po").read_text(encoding="utf-8")
+po = (root / "po/en/luci-app-static-gw.po").read_text(encoding="utf-8")
 
 used = set(re.findall(r"_t\('((?:[^'\\]|\\.)*)'\)", js))
 used |= set(re.findall(r'_t\("((?:[^"\\]|\\.)*)"\)', js))
@@ -32,11 +32,11 @@ untranslated = sorted(u for u in used if u and u in po_ids and u not in po_trans
 
 print(f"strings used in view   : {len(used)}")
 print(f"msgids in po           : {len(po_ids)}")
-print(f"entries in ZH_MAP      : {len(map_ids)}")
+print(f"entries in EN_MAP      : {len(map_ids)}")
 print(f"missing from po        : {len(missing_po)}")
 for m in missing_po:
     print("   MISSING-PO :", m)
-print(f"missing from ZH_MAP    : {len(missing_map)}")
+print(f"missing from EN_MAP    : {len(missing_map)}")
 for m in missing_map:
     print("   MISSING-MAP:", m)
 print(f"untranslated in po     : {len(untranslated)}")

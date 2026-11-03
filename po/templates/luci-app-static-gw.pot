@@ -1,262 +1,220 @@
 msgid ""
-msgstr "Content-Type: text/plain; charset=UTF-8"
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+
+msgid "（来自接口配置）"
+msgstr ""
 
-#: htdocs/luci-static/resources/view/network/static-gw.js:1
-msgid "Static Address Binding"
+msgid "/etc/config/network 中未找到 LAN 接口"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/network/static-gw.js:2
-msgid "Bind fixed IPv4 addresses to MAC and optionally override gateway (option 3) and DNS (option 6) for individual clients."
+msgid "1 小时"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/network/static-gw.js:3
-msgid "LAN: "
+msgid "12 小时"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/network/static-gw.js:4
-msgid "DHCP pool: "
+msgid "24 小时"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/network/static-gw.js:5
-msgid "(from interface config)"
+msgid "30 分钟"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/network/static-gw.js:6
-msgid "Default gateway: "
+msgid "5 分钟"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/network/static-gw.js:7
-msgid "System default (undetermined)"
+msgid "7 天"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/network/static-gw.js:8
-msgid "Editing disabled: "
+msgid "必须填写固定 IPv4 地址"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/network/static-gw.js:9
-msgid "LAN interface is not configured as static IPv4"
+msgid "必须填写主机名或 MAC 地址"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/network/static-gw.js:10
-msgid "LAN has no IPv4 address configured"
+msgid "编辑静态绑定"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/network/static-gw.js:11
-msgid "Cannot determine LAN subnet"
+msgid "编辑已禁用："
 msgstr ""
 
-#: htdocs/luci-static/resources/view/network/static-gw.js:12
-msgid "No active DHCPv4 configuration for LAN"
+msgid "不能绑定路由器自身地址"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/network/static-gw.js:13
-msgid "Multiple dnsmasq instances detected"
+msgid "不能使用网络地址或广播地址"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/network/static-gw.js:14
-msgid "Static Bindings"
+msgid "操作"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/network/static-gw.js:15
-msgid "Edit static binding"
+msgid "当前持有 DHCP 租约的设备。点击“设为静态”会暂存该地址的固定绑定，再点“保存并应用”生效。"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/network/static-gw.js:16
-msgid "Hostname"
+msgid "当前没有活动的 DHCP 租约。"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/network/static-gw.js:17
-msgid "Hostname or MAC address is required"
+msgid "地址不在 LAN 子网内"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/network/static-gw.js:18
-msgid "MAC Address"
+msgid "地址当前已被另一台设备租用"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/network/static-gw.js:19
-msgid "Expecting a valid MAC address"
+msgid "该客户端使用的 DNS 服务器 IPv4 地址。留空则使用上方的网关地址。"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/network/static-gw.js:20
-msgid "MAC must be a valid unicast address"
+msgid "该设备已有静态绑定。"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/network/static-gw.js:21
-msgid "MAC address already used by another binding"
+msgid "该租约没有可用的 MAC 地址。"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/network/static-gw.js:22
-msgid "Fixed IPv4"
+msgid "固定 IPv4"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/network/static-gw.js:23
-msgid "Fixed IPv4 address is required"
+msgid "继承地址池"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/network/static-gw.js:24
-msgid "Address is outside the LAN subnet"
+msgid "继承系统"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/network/static-gw.js:25
-msgid "Cannot use network or broadcast address"
+msgid "继承系统（留空）"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/network/static-gw.js:26
-msgid "Cannot bind the router address itself"
+msgid "检测到多个 dnsmasq 实例"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/network/static-gw.js:27
-msgid "IPv4 already used by another binding"
+msgid "将固定 IPv4 地址绑定到 MAC，并可为指定客户端下发自定义网关（DHCP option 3）和 DNS（option 6）。"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/network/static-gw.js:28
-msgid "Address currently leased to another device"
+msgid "仅为该客户端下发 DNS 服务器（DHCP option 6）。"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/network/static-gw.js:29
-msgid "Gateway"
+msgid "静态"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/network/static-gw.js:30
-msgid "Inherit system"
+msgid "静态绑定"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/network/static-gw.js:31
-msgid "Decided by other rules"
+msgid "静态地址绑定"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/network/static-gw.js:32
-msgid "Gateway must be inside the LAN subnet"
+msgid "可选。仅为该客户端覆盖 IPv4 网关（DHCP option 3）。留空则继承系统网关。"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/network/static-gw.js:33
-msgid "Gateway cannot be network or broadcast address"
+msgid "默认网关："
 msgstr ""
 
-#: htdocs/luci-static/resources/view/network/static-gw.js:34
-msgid "Gateway cannot be the same as the fixed IP"
+msgid "设为静态"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/network/static-gw.js:35
-msgid "Custom DNS"
+msgid "提示："
 msgstr ""
 
-msgid "Send a DNS server (DHCP option 6) to this client only."
+msgid "网关"
 msgstr ""
 
-msgid "DNS server"
+msgid "网关必须在 LAN 子网内"
 msgstr ""
 
-msgid "same as gateway"
+msgid "网关不能是网络地址或广播地址"
 msgstr ""
 
-msgid "IPv4 address of the DNS server for this client. Leave empty to use the gateway address above."
+msgid "网关不能与固定 IP 相同"
 msgstr ""
 
-msgid "Invalid IPv4 address"
+msgid "未检测到，沿用接口配置"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/network/static-gw.js:36
-msgid "Lease time"
+msgid "未能识别 LAN 的 DHCP 地址池配置，因此地址池范围未知。仍可正常创建和编辑绑定。"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/network/static-gw.js:37
-msgid "Inherit from pool"
+msgid "无法确定 LAN 子网"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/network/static-gw.js:38
-msgid "5 minutes"
+msgid "无效的 IPv4 地址"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/network/static-gw.js:39
-msgid "30 minutes"
+msgid "无效的 MAC 地址"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/network/static-gw.js:40
-msgid "1 hour"
+msgid "系统默认（未确定）"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/network/static-gw.js:41
-msgid "12 hours"
+msgid "需要有效的 MAC 地址"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/network/static-gw.js:42
-msgid "24 hours"
+msgid "已暂存"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/network/static-gw.js:43
-msgid "7 days"
+msgid "已暂存 %s 的静态绑定。请点击“保存并应用”提交。"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/network/static-gw.js:44
-msgid "Infinite"
+msgid "永久"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/network/static-gw.js:45
-msgid "Invalid lease time format (e.g. 12h, 7d)"
+msgid "永久"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/network/static-gw.js:46
-msgid "Status"
+msgid "由其他规则决定"
 msgstr ""
 
-#: htdocs/luci-static/resources/view/network/static-gw.js:47
-msgid "Read-only (manage in official DHCP page)"
+msgid "与网关相同"
 msgstr ""
 
-msgid "LAN interface not found in /etc/config/network"
+msgid "在线设备"
 msgstr ""
 
-msgid "not detected - inheriting interface configuration"
+msgid "只读（请在官方 DHCP 页面管理）"
 msgstr ""
 
-msgid "Notice: "
+msgid "主机名"
 msgstr ""
 
-msgid "No DHCP pool section for LAN could be identified, so the pool range is unknown. Bindings can still be created and edited."
+msgid "状态"
 msgstr ""
 
-msgid "Inherit system (leave empty)"
+msgid "自定义 DNS"
 msgstr ""
 
-msgid "Optional. Overrides the IPv4 gateway (DHCP option 3) for this client. Leave empty to inherit the system gateway."
+msgid "租期"
 msgstr ""
 
-msgid "Online devices"
+msgid "租期格式无效（例如 12h、7d）"
 msgstr ""
 
-msgid "Devices that currently hold a DHCP lease. “Make static” stages a fixed binding for the leased address; commit it with “Save & Apply”."
+msgid "租约到期"
 msgstr ""
 
-msgid "IPv4 address"
+msgid "DHCP 地址池："
 msgstr ""
 
-msgid "Lease expires"
+msgid "DNS 服务器"
 msgstr ""
 
-msgid "Action"
+msgid "IPv4 地址"
 msgstr ""
 
-msgid "Make static"
+msgid "IPv4 已被其他绑定使用"
 msgstr ""
 
-msgid "Static"
+msgid "LAN 接口未配置为静态 IPv4"
 msgstr ""
 
-msgid "Staged"
+msgid "LAN 没有活动的 DHCPv4 配置"
 msgstr ""
 
-msgid "This lease has no usable MAC address."
+msgid "LAN 未配置 IPv4 地址"
 msgstr ""
 
-msgid "This device already has a static binding."
+msgid "LAN："
 msgstr ""
 
-msgid "Staged a static binding for %s. Click “Save & Apply” to commit."
+msgid "MAC 必须是有效的单播地址"
 msgstr ""
 
-msgid "No active DHCP leases."
+msgid "MAC 地址"
 msgstr ""
 
-msgid "infinite"
+msgid "MAC 地址已被其他绑定使用"
 msgstr ""
+
