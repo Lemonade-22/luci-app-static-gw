@@ -91,9 +91,9 @@ jobs:
             | File | Target |
             | --- | --- |
             | `luci-app-static-gw_*_all.ipk` | OpenWrt 24.10 and older (opkg) |
-            | `luci-i18n-static-gw-zh-cn_*_all.ipk` | Simplified Chinese UI (opkg) |
+            | `luci-i18n-static-gw-en_*_all.ipk` | English UI (opkg) |
             | `luci-app-static-gw-*.apk` | OpenWrt snapshot / 25.x (apk) |
-            | `luci-i18n-static-gw-zh-cn-*.apk` | Simplified Chinese UI (apk) |
+            | `luci-i18n-static-gw-en-*.apk` | English UI (apk) |
 
             Both packages are architecture independent (`Architecture: all`) -
             the application contains only LuCI JS/JSON and translations, no
@@ -103,7 +103,7 @@ jobs:
 
             ```sh
             opkg install luci-app-static-gw_*_all.ipk
-            opkg install luci-i18n-static-gw-zh-cn_*_all.ipk   # optional, Chinese UI
+            opkg install luci-i18n-static-gw-en_*_all.ipk   # optional, English UI
             ```
 
             ### Install on apk (snapshot / 25.x)
@@ -114,7 +114,7 @@ jobs:
 
             ```sh
             apk add --allow-untrusted luci-app-static-gw-*.apk
-            apk add --allow-untrusted luci-i18n-static-gw-zh-cn-*.apk   # optional
+            apk add --allow-untrusted luci-i18n-static-gw-en-*.apk   # optional
             ```
 
             After installing, reload LuCI and open **Network → Static Address

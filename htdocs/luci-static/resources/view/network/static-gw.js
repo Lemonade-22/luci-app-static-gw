@@ -13,89 +13,88 @@ const MANAGED_MARK = 'lsgw_managed';
 // Keep in sync with PKG_VERSION in the package Makefile. Shown on the page so
 // it is always obvious which build the browser actually loaded (stale caches
 // otherwise give very confusing bug reports).
-const APP_VERSION = '1.0.2';
+const APP_VERSION = '1.1.0';
 
-// --- Built-in Simplified Chinese fallback -------------------------------
-// Generated from po/zh_Hans/luci-app-static-gw.po by
-// Scripts/tests/gen-zh-map.py. LuCI's per-app i18n domain is not guaranteed
-// to be loaded for a standalone app, which showed up as a half translated UI,
-// so translate locally when the browser asks for Chinese.
-const ZH_MAP = {
-	"(from interface config)": "（来自接口配置）",
-	"1 hour": "1 小时",
-	"12 hours": "12 小时",
-	"24 hours": "24 小时",
-	"30 minutes": "30 分钟",
-	"5 minutes": "5 分钟",
-	"7 days": "7 天",
-	"Action": "操作",
-	"Address currently leased to another device": "地址当前已被另一台设备租用",
-	"Address is outside the LAN subnet": "地址不在 LAN 子网内",
-	"Bind fixed IPv4 addresses to MAC and optionally override gateway (option 3) and DNS (option 6) for individual clients.": "将固定 IPv4 地址绑定到 MAC，并可为指定客户端下发自定义网关（DHCP option 3）和 DNS（option 6）。",
-	"Cannot bind the router address itself": "不能绑定路由器自身地址",
-	"Cannot determine LAN subnet": "无法确定 LAN 子网",
-	"Cannot use network or broadcast address": "不能使用网络地址或广播地址",
-	"Custom DNS": "自定义 DNS",
-	"DHCP pool: ": "DHCP 地址池：",
-	"DNS server": "DNS 服务器",
-	"Decided by other rules": "由其他规则决定",
-	"Default gateway: ": "默认网关：",
-	"Devices that currently hold a DHCP lease. “Make static” stages a fixed binding for the leased address; commit it with “Save & Apply”.": "当前持有 DHCP 租约的设备。点击“设为静态”会暂存该地址的固定绑定，再点“保存并应用”生效。",
-	"Edit static binding": "编辑静态绑定",
-	"Editing disabled: ": "编辑已禁用：",
-	"Expecting a valid MAC address": "需要有效的 MAC 地址",
-	"Fixed IPv4": "固定 IPv4",
-	"Fixed IPv4 address is required": "必须填写固定 IPv4 地址",
-	"Gateway": "网关",
-	"Gateway cannot be network or broadcast address": "网关不能是网络地址或广播地址",
-	"Gateway cannot be the same as the fixed IP": "网关不能与固定 IP 相同",
-	"Gateway must be inside the LAN subnet": "网关必须在 LAN 子网内",
-	"Hostname": "主机名",
-	"Hostname or MAC address is required": "必须填写主机名或 MAC 地址",
-	"IPv4 address": "IPv4 地址",
-	"IPv4 address of the DNS server for this client. Leave empty to use the gateway address above.": "该客户端使用的 DNS 服务器 IPv4 地址。留空则使用上方的网关地址。",
-	"IPv4 already used by another binding": "IPv4 已被其他绑定使用",
-	"Infinite": "永久",
-	"Inherit from pool": "继承地址池",
-	"Inherit system": "继承系统",
-	"Inherit system (leave empty)": "继承系统（留空）",
-	"Invalid IPv4 address": "无效的 IPv4 地址",
-	"Invalid MAC address": "无效的 MAC 地址",
-	"Invalid lease time format (e.g. 12h, 7d)": "租期格式无效（例如 12h、7d）",
-	"LAN has no IPv4 address configured": "LAN 未配置 IPv4 地址",
-	"LAN interface is not configured as static IPv4": "LAN 接口未配置为静态 IPv4",
-	"LAN interface not found in /etc/config/network": "/etc/config/network 中未找到 LAN 接口",
-	"LAN: ": "LAN：",
-	"Lease expires": "租约到期",
-	"Lease time": "租期",
-	"MAC Address": "MAC 地址",
-	"MAC address already used by another binding": "MAC 地址已被其他绑定使用",
-	"MAC must be a valid unicast address": "MAC 必须是有效的单播地址",
-	"Make static": "设为静态",
-	"Multiple dnsmasq instances detected": "检测到多个 dnsmasq 实例",
-	"No DHCP pool section for LAN could be identified, so the pool range is unknown. Bindings can still be created and edited.": "未能识别 LAN 的 DHCP 地址池配置，因此地址池范围未知。仍可正常创建和编辑绑定。",
-	"No active DHCP leases.": "当前没有活动的 DHCP 租约。",
-	"No active DHCPv4 configuration for LAN": "LAN 没有活动的 DHCPv4 配置",
-	"Notice: ": "提示：",
-	"Online devices": "在线设备",
-	"Optional. Overrides the IPv4 gateway (DHCP option 3) for this client. Leave empty to inherit the system gateway.": "可选。仅为该客户端覆盖 IPv4 网关（DHCP option 3）。留空则继承系统网关。",
-	"Read-only (manage in official DHCP page)": "只读（请在官方 DHCP 页面管理）",
-	"Send a DNS server (DHCP option 6) to this client only.": "仅为该客户端下发 DNS 服务器（DHCP option 6）。",
-	"Staged": "已暂存",
-	"Staged a static binding for %s. Click “Save & Apply” to commit.": "已暂存 %s 的静态绑定。请点击“保存并应用”提交。",
-	"Static": "静态",
-	"Static Address Binding": "静态地址绑定",
-	"Static Bindings": "静态绑定",
-	"Status": "状态",
-	"System default (undetermined)": "系统默认（未确定）",
-	"This device already has a static binding.": "该设备已有静态绑定。",
-	"This lease has no usable MAC address.": "该租约没有可用的 MAC 地址。",
-	"infinite": "永久",
-	"not detected - inheriting interface configuration": "未检测到，沿用接口配置",
-	"same as gateway": "与网关相同",
+// --- Built-in English fallback ------------------------------------------
+// Source language is Simplified Chinese. po/en/luci-app-static-gw.po is the
+// single source of translation; Scripts/tests/gen-en-map.py generates this
+// map from it. LuCI's per-app i18n domain is not guaranteed to be loaded for
+// a standalone app, so translate locally when the browser asks for English.
+const EN_MAP = {
+	"（来自接口配置）": "(from interface config)",
+	"/etc/config/network 中未找到 LAN 接口": "LAN interface not found in /etc/config/network",
+	"1 小时": "1 hour",
+	"12 小时": "12 hours",
+	"24 小时": "24 hours",
+	"30 分钟": "30 minutes",
+	"5 分钟": "5 minutes",
+	"7 天": "7 days",
+	"必须填写固定 IPv4 地址": "Fixed IPv4 address is required",
+	"必须填写主机名或 MAC 地址": "Hostname or MAC address is required",
+	"编辑静态绑定": "Edit static binding",
+	"编辑已禁用：": "Editing disabled: ",
+	"不能绑定路由器自身地址": "Cannot bind the router address itself",
+	"不能使用网络地址或广播地址": "Cannot use network or broadcast address",
+	"操作": "Action",
+	"当前持有 DHCP 租约的设备。点击“设为静态”会暂存该地址的固定绑定，再点“保存并应用”生效。": "Devices that currently hold a DHCP lease. “Make static” stages a fixed binding for the leased address; commit it with “Save & Apply”.",
+	"当前没有活动的 DHCP 租约。": "No active DHCP leases.",
+	"地址不在 LAN 子网内": "Address is outside the LAN subnet",
+	"地址当前已被另一台设备租用": "Address currently leased to another device",
+	"该客户端使用的 DNS 服务器 IPv4 地址。留空则使用上方的网关地址。": "IPv4 address of the DNS server for this client. Leave empty to use the gateway address above.",
+	"该设备已有静态绑定。": "This device already has a static binding.",
+	"该租约没有可用的 MAC 地址。": "This lease has no usable MAC address.",
+	"固定 IPv4": "Fixed IPv4",
+	"继承地址池": "Inherit from pool",
+	"继承系统": "Inherit system",
+	"继承系统（留空）": "Inherit system (leave empty)",
+	"检测到多个 dnsmasq 实例": "Multiple dnsmasq instances detected",
+	"将固定 IPv4 地址绑定到 MAC，并可为指定客户端下发自定义网关（DHCP option 3）和 DNS（option 6）。": "Bind fixed IPv4 addresses to MAC and optionally override gateway (option 3) and DNS (option 6) for individual clients.",
+	"仅为该客户端下发 DNS 服务器（DHCP option 6）。": "Send a DNS server (DHCP option 6) to this client only.",
+	"静态": "Static",
+	"静态绑定": "Static Bindings",
+	"静态地址绑定": "Static Address Binding",
+	"可选。仅为该客户端覆盖 IPv4 网关（DHCP option 3）。留空则继承系统网关。": "Optional. Overrides the IPv4 gateway (DHCP option 3) for this client. Leave empty to inherit the system gateway.",
+	"默认网关：": "Default gateway: ",
+	"设为静态": "Make static",
+	"提示：": "Notice: ",
+	"网关": "Gateway",
+	"网关必须在 LAN 子网内": "Gateway must be inside the LAN subnet",
+	"网关不能是网络地址或广播地址": "Gateway cannot be network or broadcast address",
+	"网关不能与固定 IP 相同": "Gateway cannot be the same as the fixed IP",
+	"未检测到，沿用接口配置": "not detected - inheriting interface configuration",
+	"未能识别 LAN 的 DHCP 地址池配置，因此地址池范围未知。仍可正常创建和编辑绑定。": "No DHCP pool section for LAN could be identified, so the pool range is unknown. Bindings can still be created and edited.",
+	"无法确定 LAN 子网": "Cannot determine LAN subnet",
+	"无效的 IPv4 地址": "Invalid IPv4 address",
+	"无效的 MAC 地址": "Invalid MAC address",
+	"系统默认（未确定）": "System default (undetermined)",
+	"需要有效的 MAC 地址": "Expecting a valid MAC address",
+	"已暂存": "Staged",
+	"已暂存 %s 的静态绑定。请点击“保存并应用”提交。": "Staged a static binding for %s. Click “Save & Apply” to commit.",
+	"永久": "Infinite",
+	"由其他规则决定": "Decided by other rules",
+	"与网关相同": "same as gateway",
+	"在线设备": "Online devices",
+	"只读（请在官方 DHCP 页面管理）": "Read-only (manage in official DHCP page)",
+	"主机名": "Hostname",
+	"状态": "Status",
+	"自定义 DNS": "Custom DNS",
+	"租期": "Lease time",
+	"租期格式无效（例如 12h、7d）": "Invalid lease time format (e.g. 12h, 7d)",
+	"租约到期": "Lease expires",
+	"DHCP 地址池：": "DHCP pool: ",
+	"DNS 服务器": "DNS server",
+	"IPv4 地址": "IPv4 address",
+	"IPv4 已被其他绑定使用": "IPv4 already used by another binding",
+	"LAN 接口未配置为静态 IPv4": "LAN interface is not configured as static IPv4",
+	"LAN 没有活动的 DHCPv4 配置": "No active DHCPv4 configuration for LAN",
+	"LAN 未配置 IPv4 地址": "LAN has no IPv4 address configured",
+	"LAN：": "LAN: ",
+	"MAC 必须是有效的单播地址": "MAC must be a valid unicast address",
+	"MAC 地址": "MAC Address",
+	"MAC 地址已被其他绑定使用": "MAC address already used by another binding",
 };
 
-const WANT_ZH = (function() {
+const WANT_EN = (function() {
 	const cands = [
 		(typeof document !== 'undefined' && document.documentElement)
 			? document.documentElement.getAttribute('lang') : null,
@@ -103,12 +102,12 @@ const WANT_ZH = (function() {
 		(typeof navigator !== 'undefined') ? navigator.userLanguage : null,
 		(typeof L !== 'undefined' && L.env) ? L.env.lang : null
 	];
-	return cands.some(l => l && String(l).toLowerCase().indexOf('zh') === 0);
+	return cands.some(l => l && String(l).toLowerCase().indexOf('en') === 0);
 })();
 
 function _t(msgid) {
-	if (WANT_ZH && Object.prototype.hasOwnProperty.call(ZH_MAP, msgid))
-		return ZH_MAP[msgid];
+	if (WANT_EN && Object.prototype.hasOwnProperty.call(EN_MAP, msgid))
+		return EN_MAP[msgid];
 	return (typeof _ === 'function') ? _(msgid) : msgid;
 }
 // ------------------------------------------------------------------------
@@ -134,7 +133,7 @@ const callNetworkDevices = rpc.declare({
 function isValidMAC(s) {
 	if (!s) return true;
 	const m = String(s).trim().toLowerCase().replace(/-/g, ':');
-	if (!m.match(/^([0-9a-f]{2}:){5}[0-9a-f]{2}$/)) return _t('Expecting a valid MAC address');
+	if (!m.match(/^([0-9a-f]{2}:){5}[0-9a-f]{2}$/)) return _t('需要有效的 MAC 地址');
 	return true;
 }
 
@@ -317,13 +316,13 @@ function maskToPrefix(mask) {
 function getLanTopology() {
 	const lanNet = uci.get('network', 'lan');
 	if (!lanNet) {
-		return { ready: false, reason: _t('LAN interface not found in /etc/config/network') };
+		return { ready: false, reason: _t('/etc/config/network 中未找到 LAN 接口') };
 	}
 
 	// Static is OpenWrt's default protocol; many configs omit `option proto`.
 	const proto = lanNet.proto || 'static';
 	if (proto !== 'static') {
-		return { ready: false, reason: _t('LAN interface is not configured as static IPv4') + ' (' + proto + ')' };
+		return { ready: false, reason: _t('LAN 接口未配置为静态 IPv4') + ' (' + proto + ')' };
 	}
 
 	// `ipaddr` is either "192.168.1.1/24" or a bare address with a separate
@@ -338,13 +337,13 @@ function getLanTopology() {
 		}
 	}
 	if (!lanIp) {
-		return { ready: false, reason: _t('LAN has no IPv4 address configured') };
+		return { ready: false, reason: _t('LAN 未配置 IPv4 地址') };
 	}
 	lanMask = lanMask || lanNet.netmask || '255.255.255.0';
 
 	const netInfo = calculateNetwork(lanIp, lanMask);
 	if (!netInfo) {
-		return { ready: false, reason: _t('Cannot determine LAN subnet') + ' (' + lanIp + '/' + lanMask + ')' };
+		return { ready: false, reason: _t('无法确定 LAN 子网') + ' (' + lanIp + '/' + lanMask + ')' };
 	}
 
 	// Locate the dnsmasq DHCPv4 section that serves lan.
@@ -364,7 +363,7 @@ function getLanTopology() {
 	if (dnsmasqSections.length > 1) {
 		return {
 			ready: false,
-			reason: _t('Multiple dnsmasq instances detected') +
+			reason: _t('检测到多个 dnsmasq 实例') +
 				' (' + dnsmasqSections.map(s => s['.name'] || '[anonymous]').join(', ') + ')'
 		};
 	}
@@ -395,7 +394,7 @@ function getLanTopology() {
 }
 
 function getEffectiveDefaultGateway(topology) {
-	if (!topology.ready) return _t('System default (undetermined)');
+	if (!topology.ready) return _t('系统默认（未确定）');
 
 	const dhcpSection = uci.get('dhcp', topology.dhcpSection);
 	if (dhcpSection) {
@@ -444,8 +443,8 @@ return view.extend({
 
 		let m, s, o;
 
-		m = new form.Map('dhcp', _t('Static Address Binding'),
-			_t('Bind fixed IPv4 addresses to MAC and optionally override gateway (option 3) and DNS (option 6) for individual clients.'));
+		m = new form.Map('dhcp', _t('静态地址绑定'),
+			_t('将固定 IPv4 地址绑定到 MAC，并可为指定客户端下发自定义网关（DHCP option 3）和 DNS（option 6）。'));
 
 		if (!top.ready) {
 			const note = m.section(form.TypedSection, '_info');
@@ -454,7 +453,7 @@ return view.extend({
 			o = note.option(form.DummyValue, '_warn');
 			o.rawhtml = true;
 			o.default = E('div', { class: 'alert-message warning' }, [
-				E('strong', _t('Editing disabled: ')), top.reason
+				E('strong', _t('编辑已禁用：')), top.reason
 			]);
 			return m.render();
 		}
@@ -467,11 +466,11 @@ return view.extend({
 
 		const headerNodes = [
 			E('div', { class: 'cbi-section-descr' }, [
-				E('strong', _t('LAN: ')), top.lanIp + '/' + (top.lanPrefix != null ? top.lanPrefix : '?'),
+				E('strong', _t('LAN：')), top.lanIp + '/' + (top.lanPrefix != null ? top.lanPrefix : '?'),
 				E('br'),
-				E('strong', _t('DHCP pool: ')), pool || _t('not detected - inheriting interface configuration'),
+				E('strong', _t('DHCP 地址池：')), pool || _t('未检测到，沿用接口配置'),
 				E('br'),
-				E('strong', _t('Default gateway: ')), defaultGw
+				E('strong', _t('默认网关：')), defaultGw
 			])
 		];
 
@@ -479,8 +478,8 @@ return view.extend({
 		// writes global host/tag sections. Say so instead of silently limiting.
 		if (!top.poolKnown) {
 			headerNodes.push(E('div', { class: 'alert-message notice' }, [
-				E('strong', _t('Notice: ')),
-				_t('No DHCP pool section for LAN could be identified, so the pool range is unknown. Bindings can still be created and edited.'),
+				E('strong', _t('提示：')),
+				_t('未能识别 LAN 的 DHCP 地址池配置，因此地址池范围未知。仍可正常创建和编辑绑定。'),
 				E('br'),
 				E('small', { class: 'muted' }, top.diag)
 			]));
@@ -488,19 +487,19 @@ return view.extend({
 
 		o.default = E('div', {}, headerNodes);
 
-		s = m.section(form.GridSection, 'host', _t('Static Bindings'));
+		s = m.section(form.GridSection, 'host', _t('静态绑定'));
 		s.anonymous = true;
 		s.addremove = true;
 		s.sortable = true;
 		s.nodescriptions = true;
 		s.max_cols = 5;
-		s.modaltitle = _t('Edit static binding');
+		s.modaltitle = _t('编辑静态绑定');
 
 		// Hostname
-		o = s.option(form.Value, 'name', _t('Hostname'));
+		o = s.option(form.Value, 'name', _t('主机名'));
 		o.validate = function(section_id, value) {
 			if (!value && !this.section.formvalue(section_id, 'mac'))
-				return _t('Hostname or MAC address is required');
+				return _t('必须填写主机名或 MAC 地址');
 			return true;
 		};
 		o.write = function(section, value) {
@@ -513,18 +512,18 @@ return view.extend({
 		};
 
 		// MAC (single)
-		o = s.option(form.Value, 'mac', _t('MAC Address'));
+		o = s.option(form.Value, 'mac', _t('MAC 地址'));
 		o.datatype = 'macaddr';
 		o.validate = function(section_id, value) {
 			const norm = normalizeMAC(value);
-			if (!norm) return _t('Invalid MAC address');
-			if (!isUnicastMAC(norm)) return _t('MAC must be a valid unicast address');
+			if (!norm) return _t('无效的 MAC 地址');
+			if (!isUnicastMAC(norm)) return _t('MAC 必须是有效的单播地址');
 			// conflict with other hosts
 			for (const h of uci.sections('dhcp', 'host')) {
 				if (h['.name'] === section_id) continue;
 				const otherMacs = L.toArray(h.mac).map(normalizeMAC);
 				if (otherMacs.includes(norm))
-					return _t('MAC address already used by another binding');
+					return _t('MAC 地址已被其他绑定使用');
 			}
 			return true;
 		};
@@ -538,22 +537,22 @@ return view.extend({
 		};
 
 		// Fixed IP
-		o = s.option(form.Value, 'ip', _t('Fixed IPv4'));
+		o = s.option(form.Value, 'ip', _t('固定 IPv4'));
 		o.datatype = 'ip4addr';
 		o.validate = function(section_id, value) {
-			if (!value) return _t('Fixed IPv4 address is required');
+			if (!value) return _t('必须填写固定 IPv4 地址');
 			if (!ipInSubnet(value, top.lanNet, top.lanMask))
-				return _t('Address is outside the LAN subnet');
+				return _t('地址不在 LAN 子网内');
 			if (isNetworkOrBroadcast(value, top.lanNet, top.lanMask))
-				return _t('Cannot use network or broadcast address');
+				return _t('不能使用网络地址或广播地址');
 			if (value === top.lanIp)
-				return _t('Cannot bind the router address itself');
+				return _t('不能绑定路由器自身地址');
 
 			// conflict with other bindings
 			for (const h of uci.sections('dhcp', 'host')) {
 				if (h['.name'] === section_id) continue;
 				if (h.ip === value)
-					return _t('IPv4 already used by another binding');
+					return _t('IPv4 已被其他绑定使用');
 			}
 
 			// check active leases (best effort)
@@ -562,7 +561,7 @@ return view.extend({
 				if (l.ipaddr === value) {
 					const thisMac = normalizeMAC(this.section.formvalue(section_id, 'mac'));
 					if (thisMac && normalizeMAC(l.macaddr) !== thisMac)
-						return _t('Address currently leased to another device');
+						return _t('地址当前已被另一台设备租用');
 				}
 			}
 			return true;
@@ -571,15 +570,15 @@ return view.extend({
 		// Gateway: per-host override of DHCP option 3.
 		// No `modalonly`, so it is shown both as a table column and as the
 		// editable field inside the edit dialog. Empty means "inherit".
-		o = s.option(form.Value, '__gw', _t('Gateway'));
-		o.placeholder = _t('Inherit system (leave empty)');
-		o.description = _t('Optional. Overrides the IPv4 gateway (DHCP option 3) for this client. Leave empty to inherit the system gateway.');
+		o = s.option(form.Value, '__gw', _t('网关'));
+		o.placeholder = _t('继承系统（留空）');
+		o.description = _t('可选。仅为该客户端覆盖 IPv4 网关（DHCP option 3）。留空则继承系统网关。');
 		o.textvalue = function(section_id) {
-			if (!hostIsEditable(section_id)) return _t('Decided by other rules');
+			if (!hostIsEditable(section_id)) return _t('由其他规则决定');
 			const info = getManagedGatewayFromHost(section_id);
 			if (info.mode === 'custom') return info.gw + (info.dns ? ' + DNS' : '');
-			if (info.mode === 'other') return _t('Decided by other rules');
-			return _t('Inherit system');
+			if (info.mode === 'other') return _t('由其他规则决定');
+			return _t('继承系统');
 		};
 		o.cfgvalue = function(section_id) {
 			const info = getManagedGatewayFromHost(section_id);
@@ -602,23 +601,23 @@ return view.extend({
 		o.validate = function(section_id, value) {
 			if (!value) return true; // inherit
 			if (!ipInSubnet(value, top.lanNet, top.lanMask))
-				return _t('Gateway must be inside the LAN subnet');
+				return _t('网关必须在 LAN 子网内');
 			if (isNetworkOrBroadcast(value, top.lanNet, top.lanMask))
-				return _t('Gateway cannot be network or broadcast address');
+				return _t('网关不能是网络地址或广播地址');
 			const fixedIp = this.section.formvalue(section_id, 'ip');
 			if (value === fixedIp)
-				return _t('Gateway cannot be the same as the fixed IP');
+				return _t('网关不能与固定 IP 相同');
 			return true;
 		};
 
 		// Custom DNS: its own opt-in block. When enabled a dedicated DNS
 		// address can be entered; leaving it empty reuses the gateway address
 		// (the classic "gateway also acts as DNS" behaviour).
-		o = s.option(form.Flag, '__gw_dns', _t('Custom DNS'));
+		o = s.option(form.Flag, '__gw_dns', _t('自定义 DNS'));
 		o.modalonly = true;
 		o.default = '0';
 		o.depends('__gw', '', true); // only meaningful together with a gateway
-		o.description = _t('Send a DNS server (DHCP option 6) to this client only.');
+		o.description = _t('仅为该客户端下发 DNS 服务器（DHCP option 6）。');
 		o.write = function() {}; // handled in __gw.write
 		o.cfgvalue = function(section_id) {
 			const info = getManagedGatewayFromHost(section_id);
@@ -627,11 +626,11 @@ return view.extend({
 
 		// Dedicated DNS server address, shown as a separate block once the
 		// "Custom DNS" switch is on.
-		o = s.option(form.Value, '__dns', _t('DNS server'));
+		o = s.option(form.Value, '__dns', _t('DNS 服务器'));
 		o.modalonly = true;
 		o.depends('__gw_dns', '1');
-		o.placeholder = _t('same as gateway');
-		o.description = _t('IPv4 address of the DNS server for this client. Leave empty to use the gateway address above.');
+		o.placeholder = _t('与网关相同');
+		o.description = _t('该客户端使用的 DNS 服务器 IPv4 地址。留空则使用上方的网关地址。');
 		o.cfgvalue = function(section_id) {
 			const info = getManagedGatewayFromHost(section_id);
 			if (info.mode !== 'custom' || !info.dns) return '';
@@ -641,39 +640,39 @@ return view.extend({
 		o.validate = function(section_id, value) {
 			if (!value) return true;
 			const v = String(value).trim();
-			if (!validation.parseIPv4(v)) return _t('Invalid IPv4 address');
+			if (!validation.parseIPv4(v)) return _t('无效的 IPv4 地址');
 			if (ipInSubnet(v, top.lanNet, top.lanMask) &&
 			    isNetworkOrBroadcast(v, top.lanNet, top.lanMask))
-				return _t('Cannot use network or broadcast address');
+				return _t('不能使用网络地址或广播地址');
 			return true;
 		};
 
 		// Leasetime
-		o = s.option(form.Value, 'leasetime', _t('Lease time'));
+		o = s.option(form.Value, 'leasetime', _t('租期'));
 		o.modalonly = true;
 		o.rmempty = true;
-		o.placeholder = _t('Inherit from pool');
-		o.value('5m', _t('5 minutes'));
-		o.value('30m', _t('30 minutes'));
-		o.value('1h', _t('1 hour'));
-		o.value('12h', _t('12 hours'));
-		o.value('24h', _t('24 hours'));
-		o.value('7d', _t('7 days'));
-		o.value('infinite', _t('Infinite'));
+		o.placeholder = _t('继承地址池');
+		o.value('5m', _t('5 分钟'));
+		o.value('30m', _t('30 分钟'));
+		o.value('1h', _t('1 小时'));
+		o.value('12h', _t('12 小时'));
+		o.value('24h', _t('24 小时'));
+		o.value('7d', _t('7 天'));
+		o.value('infinite', _t('永久'));
 		o.validate = function(section_id, value) {
 			if (!value) return true;
 			if (value === 'infinite') return true;
-			if (!value.match(/^\d+[smhd]$/)) return _t('Invalid lease time format (e.g. 12h, 7d)');
+			if (!value.match(/^\d+[smhd]$/)) return _t('租期格式无效（例如 12h、7d）');
 			return true;
 		};
 
 		// Records that cannot be expressed losslessly stay read-only: their
 		// table cells show a hint and every write is suppressed centrally
 		// below, so nothing of the original record can be lost.
-		o = s.option(form.DummyValue, '__state', _t('Status'));
+		o = s.option(form.DummyValue, '__state', _t('状态'));
 		o.textvalue = function(section_id) {
 			if (hostIsEditable(section_id)) return '';
-			return E('em', { class: 'muted' }, _t('Read-only (manage in official DHCP page)'));
+			return E('em', { class: 'muted' }, _t('只读（请在官方 DHCP 页面管理）'));
 		};
 
 		// Central guard: a record that is not losslessly editable must never be
@@ -712,11 +711,11 @@ return view.extend({
 			const btn = ev.target;
 			const mac = normalizeMAC(lease.macaddr);
 			if (!mac) {
-				ui.addNotification(null, E('p', _t('This lease has no usable MAC address.')), 'warning');
+				ui.addNotification(null, E('p', _t('该租约没有可用的 MAC 地址。')), 'warning');
 				return;
 			}
 			if (alreadyStatic(mac)) {
-				ui.addNotification(null, E('p', _t('This device already has a static binding.')), 'info');
+				ui.addNotification(null, E('p', _t('该设备已有静态绑定。')), 'info');
 				return;
 			}
 
@@ -731,17 +730,17 @@ return view.extend({
 				btn.disabled = true;
 				btn.classList.remove('cbi-button-add');
 				btn.classList.add('cbi-button-neutral');
-				btn.textContent = _t('Staged');
+				btn.textContent = _t('已暂存');
 			}
 			ui.addNotification(null, E('p',
-				_t('Staged a static binding for %s. Click “Save & Apply” to commit.').format(
+				_t('已暂存 %s 的静态绑定。请点击“保存并应用”提交。').format(
 					lease.ipaddr || mac)), 'info');
 		};
 
 		const leaseRows = [];
 		if (leaseList.length === 0) {
 			leaseRows.push(E('tr', { class: 'tr' }, [
-				E('td', { class: 'td', colspan: 5 }, E('em', _t('No active DHCP leases.')))
+				E('td', { class: 'td', colspan: 5 }, E('em', _t('当前没有活动的 DHCP 租约。')))
 			]));
 		} else {
 			for (const lease of leaseList) {
@@ -751,13 +750,13 @@ return view.extend({
 					E('td', { class: 'td' }, lease.hostname || '-'),
 					E('td', { class: 'td' }, mac || '-'),
 					E('td', { class: 'td' }, lease.ipaddr || '-'),
-					E('td', { class: 'td' }, lease.expires === false ? _t('infinite') : (lease.expires || '-')),
+					E('td', { class: 'td' }, lease.expires === false ? _t('永久') : (lease.expires || '-')),
 					E('td', { class: 'td' }, isStatic
-						? E('span', { class: 'label label-success' }, _t('Static'))
+						? E('span', { class: 'label label-success' }, _t('静态'))
 						: E('button', {
 							'class': 'cbi-button cbi-button-add',
 							'click': ui.createHandlerFn(this, makeStatic, lease)
-						}, _t('Make static')))
+						}, _t('设为静态')))
 				]));
 			}
 		}
@@ -768,17 +767,17 @@ return view.extend({
 		o = dev.option(form.DummyValue, '_leasetable');
 		o.rawhtml = true;
 		o.default = E('div', {}, [
-			E('h3', {}, _t('Online devices')),
+			E('h3', {}, _t('在线设备')),
 			E('div', { class: 'cbi-section-descr' },
-				_t('Devices that currently hold a DHCP lease. “Make static” stages a fixed binding for the leased address; commit it with “Save & Apply”.')),
+				_t('当前持有 DHCP 租约的设备。点击“设为静态”会暂存该地址的固定绑定，再点“保存并应用”生效。')),
 			E('div', { class: 'table-wrapper' }, [
 				E('table', { class: 'table' }, [
 					E('tr', { class: 'tr table-titles' }, [
-						E('th', { class: 'th' }, _t('Hostname')),
-						E('th', { class: 'th' }, _t('MAC Address')),
-						E('th', { class: 'th' }, _t('IPv4 address')),
-						E('th', { class: 'th' }, _t('Lease expires')),
-						E('th', { class: 'th' }, _t('Action'))
+						E('th', { class: 'th' }, _t('主机名')),
+						E('th', { class: 'th' }, _t('MAC 地址')),
+						E('th', { class: 'th' }, _t('IPv4 地址')),
+						E('th', { class: 'th' }, _t('租约到期')),
+						E('th', { class: 'th' }, _t('操作'))
 					]),
 					...leaseRows
 				])
@@ -788,3 +787,4 @@ return view.extend({
 		return m.render();
 	}
 });
+

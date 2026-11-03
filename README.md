@@ -16,7 +16,7 @@ LuCI application for per-host static IPv4 binding with optional custom gateway (
   - Optional "also send as DNS" (option 6) only when a custom gateway is set.
 - Official page interoperability: new entries appear in "Network → DHCP/DNS → Static Leases"; official advanced entries (multi-MAC, DUID, IPv6, match_tag, etc.) are shown read-only and are never written.
 - Standard LuCI save & apply flow with rollback.
-- English + Simplified Chinese (Chinese also works without the separate i18n package, via a built-in fallback generated from the `.po` file).
+- Simplified Chinese (source language) + English (install the separate i18n package; English also works without it via a built-in fallback generated from the `.po` file).
 
 ## Requirements
 
@@ -44,9 +44,9 @@ is kept separate instead of sharing one moving tag:
 | File | Target |
 | --- | --- |
 | `luci-app-static-gw_*_all.ipk` | OpenWrt 24.10 and older (opkg) |
-| `luci-i18n-static-gw-zh-cn_*_all.ipk` | Simplified Chinese UI (opkg) |
+| `luci-i18n-static-gw-en_*_all.ipk` | English UI (opkg) |
 | `luci-app-static-gw-*.apk` | OpenWrt snapshot / 25.x (apk) |
-| `luci-i18n-static-gw-zh-cn-*.apk` | Simplified Chinese UI (apk) |
+| `luci-i18n-static-gw-en-*.apk` | English UI (apk) |
 
 Both packages are `Architecture: all` — they contain only LuCI JS/JSON and
 translations, so one file serves every device.
@@ -55,7 +55,7 @@ translations, so one file serves every device.
 
 ```sh
 opkg install luci-app-static-gw_*_all.ipk
-opkg install luci-i18n-static-gw-zh-cn_*_all.ipk   # optional, Chinese UI
+opkg install luci-i18n-static-gw-en_*_all.ipk   # optional, English UI
 ```
 
 ### Install on apk (snapshot / 25.x)
@@ -72,7 +72,7 @@ Install with:
 
 ```sh
 apk add --allow-untrusted luci-app-static-gw-*.apk
-apk add --allow-untrusted luci-i18n-static-gw-zh-cn-*.apk   # optional
+apk add --allow-untrusted luci-i18n-static-gw-en-*.apk   # optional
 ```
 
 Then refresh LuCI (or `luci-reload`).

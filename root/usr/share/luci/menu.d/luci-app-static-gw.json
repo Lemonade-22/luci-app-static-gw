@@ -1,6 +1,6 @@
 {
 	"admin/network/static-gw": {
-		"title": "Static Address Binding",
+		"title": "静态地址绑定",
 		"order": 50,
 		"action": {
 			"type": "view",
@@ -11,3 +11,4 @@
 		}
 	}
 }
+
