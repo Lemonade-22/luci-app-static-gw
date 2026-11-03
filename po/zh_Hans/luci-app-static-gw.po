@@ -190,3 +190,15 @@ msgstr "状态"
 #: htdocs/luci-static/resources/view/network/static-gw.js:47
 msgid "Read-only (manage in official DHCP page)"
 msgstr "只读（请在官方 DHCP 页面管理）"
+
+msgid "LAN interface not found in /etc/config/network"
+msgstr "/etc/config/network 中未找到 LAN 接口"
+
+msgid "not detected - inheriting interface configuration"
+msgstr "未检测到，沿用接口配置"
+
+msgid "Notice: "
+msgstr "提示："
+
+msgid "No DHCP pool section for LAN could be identified, so the pool range is unknown. Bindings can still be created and edited."
+msgstr "未能识别 LAN 的 DHCP 地址池配置，因此地址池范围未知。仍可正常创建和编辑绑定。"
