@@ -75,7 +75,9 @@ fi
 
 # --------------------------------------------------------------- collect -----
 log "Collecting ${FORMAT} artifacts"
-find bin -type f -name "luci-app-static-gw*" -print0 \
+# luci.mk splits the translations into their own luci-i18n-* packages, so the
+# Simplified Chinese UI only works when that package is published too.
+find bin -type f \( -name "luci-app-static-gw*" -o -name "luci-i18n-static-gw*" \) -print0 \
 	| while IFS= read -r -d '' f; do
 		case "$f" in
 			*.ipk|*.apk) cp -v "$f" "$OUT"/ ;;
@@ -139,15 +141,9 @@ for p in "${pkgs[@]}"; do
 				| sed -n '1,15p'
 			;;
 		*.apk)
-			# apk-tools 3 wraps a tar stream in gzip/zstd; try both, then
-			# fall back to just reporting the magic bytes.
-			for decomp in "gzip -dc" "zstd -dc" "cat"; do
-				out="$($decomp "$p" 2>/dev/null | tar -tf - 2>/dev/null | head -12)"
-				if [ -n "$out" ]; then
-					echo "$out"
-					break
-				fi
-			done
+			# apk-tools 3 uses its own "ADBd" container, which GNU tar cannot
+			# read; report the magic bytes instead of pretending to parse it.
+			printf 'apk container: '; head -c 4 "$p" | od -An -c | tr -d '\n'; echo
 			;;
 	esac
 	# Prove the package really is architecture independent.

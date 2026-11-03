@@ -73,7 +73,9 @@ jobs:
             | File | Target |
             | --- | --- |
             | `luci-app-static-gw_*_all.ipk` | OpenWrt 24.10 and older (opkg) |
+            | `luci-i18n-static-gw-zh-cn_*_all.ipk` | Simplified Chinese UI (opkg) |
             | `luci-app-static-gw-*.apk` | OpenWrt snapshot / 25.x (apk) |
+            | `luci-i18n-static-gw-zh-cn-*.apk` | Simplified Chinese UI (apk) |
             | `luci-app-static-gw-signing-key.pem` | public key that signed the `.apk` |
 
             Both packages are architecture independent (`Architecture: all`) -
@@ -84,6 +86,7 @@ jobs:
 
             ```sh
             opkg install luci-app-static-gw_*_all.ipk
+            opkg install luci-i18n-static-gw-zh-cn_*_all.ipk   # optional, Chinese UI
             ```
 
             ### Install on apk (snapshot / 25.x)
@@ -97,12 +100,14 @@ jobs:
             ```sh
             cp luci-app-static-gw-signing-key.pem /etc/apk/keys/
             apk add luci-app-static-gw-*.apk
+            apk add luci-i18n-static-gw-zh-cn-*.apk   # optional, Chinese UI
             ```
 
             For a one-off install without trusting the key:
 
             ```sh
             apk add --allow-untrusted luci-app-static-gw-*.apk
+            apk add --allow-untrusted luci-i18n-static-gw-zh-cn-*.apk
             ```
 
             After installing, reload LuCI and open **Network → Static Address

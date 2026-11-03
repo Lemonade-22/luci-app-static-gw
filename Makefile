@@ -7,6 +7,8 @@ PKG_RELEASE:=1
 LUCI_TITLE:=Static Address Binding (per-host gateway/DNS)
 LUCI_DEPENDS:=+luci-base +rpcd-mod-luci
 LUCI_PKGARCH:=all
+LUCI_MAINTAINER:=Lemonade-22
+LUCI_URL:=https://github.com/Lemonade-22/luci-app-static-gw
 
 PKG_LICENSE:=Apache-2.0
 PKG_MAINTAINER:=Lemonade-22
