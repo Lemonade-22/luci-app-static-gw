@@ -188,3 +188,15 @@ msgstr ""
 #: htdocs/luci-static/resources/view/network/static-gw.js:47
 msgid "Read-only (manage in official DHCP page)"
 msgstr ""
+
+msgid "LAN interface not found in /etc/config/network"
+msgstr ""
+
+msgid "not detected - inheriting interface configuration"
+msgstr ""
+
+msgid "Notice: "
+msgstr ""
+
+msgid "No DHCP pool section for LAN could be identified, so the pool range is unknown. Bindings can still be created and edited."
+msgstr ""

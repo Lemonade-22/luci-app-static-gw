@@ -202,45 +202,94 @@ function hostIsEditable(sid) {
 	return true;
 }
 
+function maskToPrefix(mask) {
+	const p = validation.parseIPv4(String(mask));
+	if (!p) return null;
+	let bits = 0;
+	for (const octet of p) {
+		let n = octet;
+		while (n & 0x80) { bits++; n = (n << 1) & 0xff; }
+	}
+	return bits;
+}
+
 function getLanTopology() {
 	const lanNet = uci.get('network', 'lan');
-	if (!lanNet || lanNet.proto !== 'static') {
-		return { ready: false, reason: _('LAN interface is not configured as static IPv4') };
+	if (!lanNet) {
+		return { ready: false, reason: _('LAN interface not found in /etc/config/network') };
 	}
 
-	const ipaddrs = L.toArray(lanNet.ipaddr || lanNet.ipaddrs);
-	if (ipaddrs.length === 0) {
+	// Static is OpenWrt's default protocol; many configs omit `option proto`.
+	const proto = lanNet.proto || 'static';
+	if (proto !== 'static') {
+		return { ready: false, reason: _('LAN interface is not configured as static IPv4') + ' (' + proto + ')' };
+	}
+
+	// `ipaddr` is either "192.168.1.1/24" or a bare address with a separate
+	// `netmask` option - accept both forms.
+	let lanIp = null, lanMask = null;
+	const cidr = L.toArray(lanNet.ipaddr || lanNet.ipaddrs)[0];
+	if (cidr) {
+		const parts = String(cidr).split('/');
+		lanIp = parts[0];
+		if (parts.length > 1) {
+			lanMask = network.prefixToMask(parseInt(parts[1], 10));
+		}
+	}
+	if (!lanIp) {
 		return { ready: false, reason: _('LAN has no IPv4 address configured') };
 	}
-	const lanIpCidr = ipaddrs[0];
-	const [lanIp, lanPrefix] = lanIpCidr.split('/');
-	const lanMask = lanPrefix ? network.prefixToMask(parseInt(lanPrefix)) : '255.255.255.0';
+	lanMask = lanMask || lanNet.netmask || '255.255.255.0';
+
 	const netInfo = calculateNetwork(lanIp, lanMask);
 	if (!netInfo) {
-		return { ready: false, reason: _('Cannot determine LAN subnet') };
+		return { ready: false, reason: _('Cannot determine LAN subnet') + ' (' + lanIp + '/' + lanMask + ')' };
 	}
 
-	const dhcpSection = uci.sections('dhcp', 'dhcp').find(s =>
-		(s.interface === 'lan' || s['.name'] === 'lan' || !s.interface)
-	);
-	if (!dhcpSection || dhcpSection.ignore === '1') {
-		return { ready: false, reason: _('No active DHCPv4 configuration for LAN') };
+	// Locate the dnsmasq DHCPv4 section that serves lan.
+	const allDhcp = uci.sections('dhcp', 'dhcp');
+	const isLan = s => (s.interface || s['.name']) === 'lan';
+	let dhcpSection = allDhcp.find(s => isLan(s) && s.ignore !== '1');
+	// A stock anonymous `config dhcp` without `interface` applies to lan.
+	if (!dhcpSection) {
+		dhcpSection = allDhcp.find(s => !s.interface && s.ignore !== '1' && s['.anonymous'] !== false);
+	}
+	// Still nothing? Accept an anonymous non-ignored section (single-DHCP LANs).
+	if (!dhcpSection) {
+		dhcpSection = allDhcp.find(s => !s.interface && s.ignore !== '1');
 	}
 
 	const dnsmasqSections = uci.sections('dhcp', 'dnsmasq').filter(s => s.ignore !== '1');
 	if (dnsmasqSections.length > 1) {
-		return { ready: false, reason: _('Multiple dnsmasq instances detected') };
+		return {
+			ready: false,
+			reason: _('Multiple dnsmasq instances detected') +
+				' (' + dnsmasqSections.map(s => s['.name'] || '[anonymous]').join(', ') + ')'
+		};
 	}
+
+	// Diagnostics for the "why is editing disabled" case.
+	const diag = [
+		'lan=' + lanIp + '/' + (maskToPrefix(lanMask) ?? '?') + ' proto=' + proto,
+		'dhcp sections=' + (allDhcp.length ? allDhcp.map(s => (s['.name'] || '?') + ':' + (s.interface || '-')).join(', ') : 'none'),
+		'dnsmasq instances=' + dnsmasqSections.length
+	].join('; ');
 
 	return {
 		ready: true,
+		// When the pool section cannot be identified we still allow editing:
+		// this app only writes global `config host` / `config tag` sections,
+		// so it does not depend on a specific `config dhcp` block.
+		poolKnown: !!dhcpSection,
+		diag: diag,
 		lanIp,
 		lanMask,
+		lanPrefix: maskToPrefix(lanMask),
 		lanNet: netInfo[0],
-		dhcpSection: dhcpSection['.name'],
-		start: dhcpSection.start,
-		limit: dhcpSection.limit,
-		leasetime: dhcpSection.leasetime
+		dhcpSection: dhcpSection ? dhcpSection['.name'] : null,
+		start: dhcpSection ? dhcpSection.start : null,
+		limit: dhcpSection ? dhcpSection.limit : null,
+		leasetime: dhcpSection ? dhcpSection.leasetime : null
 	};
 }
 
@@ -312,13 +361,29 @@ return view.extend({
 		header.cfgsections = () => ['_header'];
 		o = header.option(form.DummyValue, '_info');
 		o.rawhtml = true;
-		o.default = E('div', { class: 'cbi-section-descr' }, [
-			E('strong', _('LAN: ')), top.lanIp + '/' + top.lanMask.replace('255.255.255.', ''),
-			E('br'),
-			E('strong', _('DHCP pool: ')), pool || _('(from interface config)'),
-			E('br'),
-			E('strong', _('Default gateway: ')), defaultGw
-		]);
+
+		const headerNodes = [
+			E('div', { class: 'cbi-section-descr' }, [
+				E('strong', _('LAN: ')), top.lanIp + '/' + (top.lanPrefix != null ? top.lanPrefix : '?'),
+				E('br'),
+				E('strong', _('DHCP pool: ')), pool || _('not detected - inheriting interface configuration'),
+				E('br'),
+				E('strong', _('Default gateway: ')), defaultGw
+			])
+		];
+
+		// Editing stays possible without a `config dhcp` block: this app only
+		// writes global host/tag sections. Say so instead of silently limiting.
+		if (!top.poolKnown) {
+			headerNodes.push(E('div', { class: 'alert-message notice' }, [
+				E('strong', _('Notice: ')),
+				_('No DHCP pool section for LAN could be identified, so the pool range is unknown. Bindings can still be created and edited.'),
+				E('br'),
+				E('small', { class: 'muted' }, top.diag)
+			]));
+		}
+
+		o.default = E('div', {}, headerNodes);
 
 		s = m.section(form.GridSection, 'host', _('Static Bindings'));
 		s.anonymous = true;
