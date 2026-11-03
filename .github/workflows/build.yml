@@ -1,0 +1,82 @@
+name: Build ipk and apk
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: "OpenWrt 24.10 (ipk, opkg)"
+            sdk_version: "24.10.0"
+            sdk_url: "https://downloads.openwrt.org/releases/24.10.0/targets/x86/64/openwrt-sdk-24.10.0-x86-64_gcc-13.3.0_musl.Linux-x86_64.tar.xz"
+            package_format: "ipk"
+          - name: "OpenWrt main (apk)"
+            sdk_version: "main"
+            sdk_url: "https://downloads.openwrt.org/snapshots/targets/x86/64/openwrt-sdk-x86-64_gcc-14.2.0_musl.Linux-x86_64.tar.xz"
+            package_format: "apk"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download and extract SDK (${{ matrix.name }})
+        run: |
+          wget -q --show-progress "${{ matrix.sdk_url }}" -O /tmp/sdk.tar.xz
+          mkdir -p /tmp/sdk
+          tar -xJf /tmp/sdk.tar.xz -C /tmp/sdk --strip-components=1
+          echo "SDK extracted for ${{ matrix.sdk_version }}"
+
+      - name: Prepare feeds and package
+        run: |
+          cd /tmp/sdk
+          echo "src-git-full luci https://github.com/openwrt/luci.git;openwrt-24.10" > feeds.conf.default || true
+          if [ "${{ matrix.sdk_version }}" = "main" ]; then
+            echo "src-git-full luci https://github.com/openwrt/luci.git" > feeds.conf.default
+          fi
+          ./scripts/feeds update -a
+          ./scripts/feeds install luci-base rpcd-mod-luci
+          mkdir -p package/feeds/luci/luci-app-static-gw
+          cp -r $GITHUB_WORKSPACE/* package/feeds/luci/luci-app-static-gw/
+          # Remove .git and CI dirs
+          rm -rf package/feeds/luci/luci-app-static-gw/.git package/feeds/luci/luci-app-static-gw/.github
+
+      - name: Build package
+        run: |
+          cd /tmp/sdk
+          make package/feeds/luci/luci-app-static-gw/compile -j$(nproc) V=0 || make package/feeds/luci/luci-app-static-gw/compile -j1 V=s
+          echo "Build completed for ${{ matrix.package_format }}"
+
+      - name: Collect artifacts
+        run: |
+          cd /tmp/sdk
+          mkdir -p $GITHUB_WORKSPACE/artifacts
+          if [ "${{ matrix.package_format }}" = "ipk" ]; then
+            find bin -name "luci-app-static-gw*.ipk" -exec cp {} $GITHUB_WORKSPACE/artifacts/ \;
+          else
+            find bin -name "luci-app-static-gw*.apk" -exec cp {} $GITHUB_WORKSPACE/artifacts/ \;
+          fi
+          ls -la $GITHUB_WORKSPACE/artifacts/
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: luci-app-static-gw-${{ matrix.package_format }}
+          path: artifacts/
+          retention-days: 30
+
+      - name: Verify arch all
+        run: |
+          cd artifacts
+          for f in *; do
+            echo "Package: $f"
+            if [[ "$f" == *.ipk ]]; then
+              tar -xOf "$f" ./control.tar.gz | tar -xzO ./control | grep -E 'Architecture|Filename' || true
+            fi
+          done
