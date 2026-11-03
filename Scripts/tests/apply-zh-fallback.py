@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
-"""Rewrite the view to use a guaranteed Simplified Chinese fallback translator.
+"""Regenerate the in-view ZH_MAP from the .po file.
 
-- injects the generated ZH_MAP + _t() helper after the APP_VERSION constant
-- rewrites _(...) call sites to _t(...)
+LuCI normally translates `_()` strings through the installed luci-i18n-*
+package, but that domain is not reliably loaded for a standalone app, which
+left the UI half translated. The view therefore carries a generated map.
 
-Idempotent: running it twice is harmless. Requires gen-zh-map.py output, which
-is generated in-process from the .po file.
+po/zh_Hans/luci-app-static-gw.po stays the single source of truth. Re-run this
+after editing the .po:
+
+    python3 Scripts/tests/apply-zh-fallback.py
 """
 import json
 import re
@@ -16,18 +19,23 @@ from pathlib import Path
 root = Path(__file__).resolve().parents[2]
 view = root / "htdocs/luci-static/resources/view/network/static-gw.js"
 
-# 1. build the map from the .po (single source of truth)
-po_out = subprocess.run(
+map_src = subprocess.run(
     [sys.executable, str(root / "Scripts/tests/gen-zh-map.py")],
     capture_output=True, text=True, check=True,
 ).stdout.strip()
 
-helper = f"""// --- Built-in Simplified Chinese fallback -------------------------------
+src = view.read_text(encoding="utf-8")
+
+if "const ZH_MAP = {" in src:
+    start = src.index("const ZH_MAP = {")
+    end = src.index("\n};", start) + len("\n};")
+    src = src[:start] + map_src + src[end:]
+    print("regenerated the existing ZH_MAP block")
+else:
+    helper = f"""// --- Built-in Simplified Chinese fallback -------------------------------
 // Generated from po/zh_Hans/luci-app-static-gw.po by
-// Scripts/tests/gen-zh-map.py. LuCI's per-app i18n domain is not guaranteed
-// to be loaded for a standalone app, which showed up as a half translated UI,
-// so translate locally when the browser asks for Chinese.
-{po_out}
+// Scripts/tests/apply-zh-fallback.py; po stays the single source of truth.
+{map_src}
 
 const WANT_ZH = (function() {{
 	const cands = [
@@ -47,19 +55,16 @@ function _t(msgid) {{
 }}
 // ------------------------------------------------------------------------
 """
-
-src = view.read_text(encoding="utf-8")
-
-if "const ZH_MAP" not in src:
     anchor = re.search(r"^const APP_VERSION = '[^']*';\n", src, re.M)
     if not anchor:
         sys.exit("could not find the APP_VERSION anchor")
     src = src[:anchor.end()] + "\n" + helper + src[anchor.end():]
+    print("inserted a new ZH_MAP block")
 
-# 2. rewrite call sites (only bare `_(`, never `_t(` or `foo_(`)
+# rewrite remaining bare _( call sites (idempotent)
 before = len(re.findall(r"(?<![A-Za-z0-9_$])_\(", src))
 src = re.sub(r"(?<![A-Za-z0-9_$])_\((['\"])", r"_t(\1", src)
 after = len(re.findall(r"(?<![A-Za-z0-9_$])_\(", src))
 
 view.write_text(src, encoding="utf-8", newline="\n")
-print(f"rewrote {before - after} call sites; remaining bare _( : {after}")
+print(f"rewrote {before - after} call sites; bare _( left: {after} (helper itself)")

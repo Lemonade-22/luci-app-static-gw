@@ -37,14 +37,16 @@ Both `.ipk` (24.10/opkg) and `.apk` (25+/apk) are produced when built with the m
 
 ### Prebuilt packages (GitHub Releases)
 
-Every push to `main` rebuilds both formats and publishes them to the
-`latest` release:
+Every push to `main` builds all four packages and publishes them as **its own
+release** (tag `v<version>-r<release>-<UTC date>-run<number>`), so each build
+is kept separate instead of sharing one moving tag:
 
 | File | Target |
 | --- | --- |
 | `luci-app-static-gw_*_all.ipk` | OpenWrt 24.10 and older (opkg) |
+| `luci-i18n-static-gw-zh-cn_*_all.ipk` | Simplified Chinese UI (opkg) |
 | `luci-app-static-gw-*.apk` | OpenWrt snapshot / 25.x (apk) |
-| `luci-app-static-gw-signing-key.pem` | public key that signed the `.apk` |
+| `luci-i18n-static-gw-zh-cn-*.apk` | Simplified Chinese UI (apk) |
 
 Both packages are `Architecture: all` — they contain only LuCI JS/JSON and
 translations, so one file serves every device.
@@ -53,29 +55,24 @@ translations, so one file serves every device.
 
 ```sh
 opkg install luci-app-static-gw_*_all.ipk
+opkg install luci-i18n-static-gw-zh-cn_*_all.ipk   # optional, Chinese UI
 ```
 
 ### Install on apk (snapshot / 25.x)
 
-The `.apk` is signed with this repository's CI build key. A device does not
-trust that key by default, which surfaces as:
+The `.apk` is signed by the OpenWrt SDK during the build. That signing key is
+not distributed here, so a device reports:
 
 ```
 ERROR: /tmp/upload.apk: UNTRUSTED signature
 ```
 (`apk install` exits with code 99.)
 
-Trust the key once, then install normally:
-
-```sh
-cp luci-app-static-gw-signing-key.pem /etc/apk/keys/
-apk add luci-app-static-gw-*.apk
-```
-
-Or install a single time without trusting the key:
+Install with:
 
 ```sh
 apk add --allow-untrusted luci-app-static-gw-*.apk
+apk add --allow-untrusted luci-i18n-static-gw-zh-cn-*.apk   # optional
 ```
 
 Then refresh LuCI (or `luci-reload`).

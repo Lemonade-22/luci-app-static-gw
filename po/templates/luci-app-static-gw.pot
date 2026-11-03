@@ -138,7 +138,22 @@ msgid "Gateway cannot be the same as the fixed IP"
 msgstr ""
 
 #: htdocs/luci-static/resources/view/network/static-gw.js:35
-msgid "Also send as DNS"
+msgid "Custom DNS"
+msgstr ""
+
+msgid "Send a DNS server (DHCP option 6) to this client only."
+msgstr ""
+
+msgid "DNS server"
+msgstr ""
+
+msgid "same as gateway"
+msgstr ""
+
+msgid "IPv4 address of the DNS server for this client. Leave empty to use the gateway address above."
+msgstr ""
+
+msgid "Invalid IPv4 address"
 msgstr ""
 
 #: htdocs/luci-static/resources/view/network/static-gw.js:36

@@ -1,8 +1,9 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-static-gw
-PKG_VERSION:=1.0.1
+PKG_VERSION:=1.0.3
 PKG_RELEASE:=1
+PKG_PO_VERSION:=1.0.3
 
 LUCI_TITLE:=Static Address Binding (per-host gateway/DNS)
 LUCI_DEPENDS:=+luci-base +rpcd-mod-luci
