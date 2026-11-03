@@ -18,7 +18,7 @@ jobs:
       matrix:
         include:
           - name: "OpenWrt 24.10 (ipk)"
-            container: "ghcr.io/openwrt/sdk:24.10"
+            container: "ghcr.io/openwrt/sdk:24.10.0"
             package_format: "ipk"
           - name: "OpenWrt main (apk)"
             container: "ghcr.io/openwrt/sdk:main"
