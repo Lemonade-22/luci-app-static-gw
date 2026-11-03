@@ -1,0 +1,13 @@
+{
+	"admin/network/static-gw": {
+		"title": "Static Address Binding",
+		"order": 50,
+		"action": {
+			"type": "view",
+			"path": "network/static-gw"
+		},
+		"depends": {
+			"acl": [ "luci-app-static-gw" ]
+		}
+	}
+}
