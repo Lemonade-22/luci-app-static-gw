@@ -31,12 +31,13 @@ const ZH_MAP = {
 	"Action": "操作",
 	"Address currently leased to another device": "地址当前已被另一台设备租用",
 	"Address is outside the LAN subnet": "地址不在 LAN 子网内",
-	"Also send as DNS": "同时指定为 DNS",
 	"Bind fixed IPv4 addresses to MAC and optionally override gateway (option 3) and DNS (option 6) for individual clients.": "将固定 IPv4 地址绑定到 MAC，并可为指定客户端下发自定义网关（DHCP option 3）和 DNS（option 6）。",
 	"Cannot bind the router address itself": "不能绑定路由器自身地址",
 	"Cannot determine LAN subnet": "无法确定 LAN 子网",
 	"Cannot use network or broadcast address": "不能使用网络地址或广播地址",
+	"Custom DNS": "自定义 DNS",
 	"DHCP pool: ": "DHCP 地址池：",
+	"DNS server": "DNS 服务器",
 	"Decided by other rules": "由其他规则决定",
 	"Default gateway: ": "默认网关：",
 	"Devices that currently hold a DHCP lease. “Make static” stages a fixed binding for the leased address; commit it with “Save & Apply”.": "当前持有 DHCP 租约的设备。点击“设为静态”会暂存该地址的固定绑定，再点“保存并应用”生效。",
@@ -52,11 +53,13 @@ const ZH_MAP = {
 	"Hostname": "主机名",
 	"Hostname or MAC address is required": "必须填写主机名或 MAC 地址",
 	"IPv4 address": "IPv4 地址",
+	"IPv4 address of the DNS server for this client. Leave empty to use the gateway address above.": "该客户端使用的 DNS 服务器 IPv4 地址。留空则使用上方的网关地址。",
 	"IPv4 already used by another binding": "IPv4 已被其他绑定使用",
 	"Infinite": "永久",
 	"Inherit from pool": "继承地址池",
 	"Inherit system": "继承系统",
 	"Inherit system (leave empty)": "继承系统（留空）",
+	"Invalid IPv4 address": "无效的 IPv4 地址",
 	"Invalid MAC address": "无效的 MAC 地址",
 	"Invalid lease time format (e.g. 12h, 7d)": "租期格式无效（例如 12h、7d）",
 	"LAN has no IPv4 address configured": "LAN 未配置 IPv4 地址",
@@ -77,6 +80,7 @@ const ZH_MAP = {
 	"Online devices": "在线设备",
 	"Optional. Overrides the IPv4 gateway (DHCP option 3) for this client. Leave empty to inherit the system gateway.": "可选。仅为该客户端覆盖 IPv4 网关（DHCP option 3）。留空则继承系统网关。",
 	"Read-only (manage in official DHCP page)": "只读（请在官方 DHCP 页面管理）",
+	"Send a DNS server (DHCP option 6) to this client only.": "仅为该客户端下发 DNS 服务器（DHCP option 6）。",
 	"Staged": "已暂存",
 	"Staged a static binding for %s. Click “Save & Apply” to commit.": "已暂存 %s 的静态绑定。请点击“保存并应用”提交。",
 	"Static": "静态",
@@ -88,6 +92,7 @@ const ZH_MAP = {
 	"This lease has no usable MAC address.": "该租约没有可用的 MAC 地址。",
 	"infinite": "永久",
 	"not detected - inheriting interface configuration": "未检测到，沿用接口配置",
+	"same as gateway": "与网关相同",
 };
 
 const WANT_ZH = (function() {
@@ -186,8 +191,14 @@ function isNetworkOrBroadcast(ip, net, mask) {
 	return ip === networkAddr || ip === bcast;
 }
 
-function tagNameFor(gw, withDns) {
-	return TAG_PREFIX + gw.replace(/\./g, '_') + (withDns ? '_dns' : '');
+function tagNameFor(gw, dns) {
+	let name = TAG_PREFIX + String(gw).replace(/\./g, '_');
+	if (dns) {
+		// `_dns` when the DNS server is the gateway itself (the common case),
+		// otherwise encode the distinct server so the tag stays reusable.
+		name += (dns === gw) ? '_dns' : '_dns_' + String(dns).replace(/\./g, '_');
+	}
+	return name;
 }
 
 function isManagedTag(t) {
@@ -202,47 +213,44 @@ function tagHasOption(t, code, value) {
 
 function getManagedGatewayFromHost(sid) {
 	const tags = L.toArray(uci.get('dhcp', sid, 'tag'));
-	let managedGw = null, hasDns = false, hasThirdParty = false;
+	let managedGw = null, dns = null, hasThirdParty = false;
 	for (const tn of tags) {
 		const t = uci.get('dhcp', tn);
 		if (!t) continue;
 		if (isManagedTag(t)) {
-			const o3 = L.toArray(t.dhcp_option).find(o => String(o).match(/^3,/));
+			const opts = L.toArray(t.dhcp_option).map(String);
+			const o3 = opts.find(o => o.match(/^3,/));
 			if (o3) {
 				managedGw = o3.split(',')[1];
-				hasDns = !!L.toArray(t.dhcp_option).find(o => String(o).match(/^6,/));
+				const o6 = opts.find(o => o.match(/^6,/));
+				dns = o6 ? o6.split(',')[1] : null;
 			}
 		} else {
 			hasThirdParty = true;
 		}
 	}
-	if (managedGw) return { mode: 'custom', gw: managedGw, dns: hasDns };
+	if (managedGw) return { mode: 'custom', gw: managedGw, dns: dns };
 	if (hasThirdParty) return { mode: 'other' };
 	return { mode: 'inherit' };
 }
 
-function findReusableTag(gw, withDns) {
+function findReusableTag(gw, dns) {
+	const want = dns ? ['3,' + gw, '6,' + dns] : ['3,' + gw];
 	for (const t of uci.sections('dhcp', 'tag')) {
 		if (!isManagedTag(t)) continue;
 		if (t.force || t.match_tag || t.networkid || t.instance) continue;
-		const opts = L.toArray(t.dhcp_option);
-		if (withDns) {
-			if (opts.length !== 2) continue;
-			if (!opts.includes('3,' + gw) || !opts.includes('6,' + gw)) continue;
-		} else {
-			if (opts.length !== 1) continue;
-			if (opts[0] !== '3,' + gw) continue;
-		}
-		return t['.name'];
+		const opts = L.toArray(t.dhcp_option).map(String);
+		if (opts.length !== want.length) continue;
+		if (want.every(w => opts.includes(w))) return t['.name'];
 	}
 	return null;
 }
 
-function ensureManagedTag(gw, withDns) {
-	let name = findReusableTag(gw, withDns);
+function ensureManagedTag(gw, dns) {
+	let name = findReusableTag(gw, dns);
 	if (name) return name;
 
-	const base = tagNameFor(gw, withDns);
+	const base = tagNameFor(gw, dns);
 	name = base;
 	let suffix = 2;
 	while (uci.get('dhcp', name)) {
@@ -250,17 +258,13 @@ function ensureManagedTag(gw, withDns) {
 		suffix++;
 	}
 
-	const sid = uci.add('dhcp', 'tag', name);
+	uci.add('dhcp', 'tag', name);
 	uci.set('dhcp', name, MANAGED_MARK, '1');
-	if (withDns) {
-		uci.set('dhcp', name, 'dhcp_option', ['3,' + gw, '6,' + gw]);
-	} else {
-		uci.set('dhcp', name, 'dhcp_option', '3,' + gw);
-	}
+	uci.set('dhcp', name, 'dhcp_option', dns ? ['3,' + gw, '6,' + dns] : ['3,' + gw]);
 	return name;
 }
 
-function setHostGateway(sid, gw, withDns) {
+function setHostGateway(sid, gw, dns) {
 	const curTags = L.toArray(uci.get('dhcp', sid, 'tag'));
 	const other = curTags.filter(tn => {
 		const t = uci.get('dhcp', tn);
@@ -268,8 +272,7 @@ function setHostGateway(sid, gw, withDns) {
 	});
 
 	if (gw) {
-		const tagName = ensureManagedTag(gw, withDns);
-		other.push(tagName);
+		other.push(ensureManagedTag(gw, dns));
 	}
 
 	if (other.length > 0) {
@@ -585,12 +588,16 @@ return view.extend({
 		o.write = function(section_id, value) {
 			if (!hostIsEditable(section_id)) return;
 			const gw = (value && String(value).trim()) ? String(value).trim() : null;
-			const dnsFlag = this.section.formvalue(section_id, '__gw_dns') === '1';
-			setHostGateway(section_id, gw, dnsFlag);
+			let dns = null;
+			if (gw && this.section.formvalue(section_id, '__gw_dns') === '1') {
+				const typed = String(this.section.formvalue(section_id, '__dns') || '').trim();
+				dns = typed || gw; // empty means "use the gateway address"
+			}
+			setHostGateway(section_id, gw, dns);
 		};
 		o.remove = function(section_id) {
 			if (!hostIsEditable(section_id)) return;
-			setHostGateway(section_id, null, false);
+			setHostGateway(section_id, null, null);
 		};
 		o.validate = function(section_id, value) {
 			if (!value) return true; // inherit
@@ -604,15 +611,41 @@ return view.extend({
 			return true;
 		};
 
-		// DNS flag (only meaningful with custom gateway)
-		o = s.option(form.Flag, '__gw_dns', _t('Also send as DNS'));
+		// Custom DNS: its own opt-in block. When enabled a dedicated DNS
+		// address can be entered; leaving it empty reuses the gateway address
+		// (the classic "gateway also acts as DNS" behaviour).
+		o = s.option(form.Flag, '__gw_dns', _t('Custom DNS'));
 		o.modalonly = true;
 		o.default = '0';
-		o.depends('__gw', '', true); // show only when __gw is not empty
+		o.depends('__gw', '', true); // only meaningful together with a gateway
+		o.description = _t('Send a DNS server (DHCP option 6) to this client only.');
 		o.write = function() {}; // handled in __gw.write
 		o.cfgvalue = function(section_id) {
 			const info = getManagedGatewayFromHost(section_id);
 			return (info.mode === 'custom' && info.dns) ? '1' : '0';
+		};
+
+		// Dedicated DNS server address, shown as a separate block once the
+		// "Custom DNS" switch is on.
+		o = s.option(form.Value, '__dns', _t('DNS server'));
+		o.modalonly = true;
+		o.depends('__gw_dns', '1');
+		o.placeholder = _t('same as gateway');
+		o.description = _t('IPv4 address of the DNS server for this client. Leave empty to use the gateway address above.');
+		o.cfgvalue = function(section_id) {
+			const info = getManagedGatewayFromHost(section_id);
+			if (info.mode !== 'custom' || !info.dns) return '';
+			return (info.dns === info.gw) ? '' : info.dns;
+		};
+		o.write = function() {}; // handled in __gw.write
+		o.validate = function(section_id, value) {
+			if (!value) return true;
+			const v = String(value).trim();
+			if (!validation.parseIPv4(v)) return _t('Invalid IPv4 address');
+			if (ipInSubnet(v, top.lanNet, top.lanMask) &&
+			    isNetworkOrBroadcast(v, top.lanNet, top.lanMask))
+				return _t('Cannot use network or broadcast address');
+			return true;
 		};
 
 		// Leasetime

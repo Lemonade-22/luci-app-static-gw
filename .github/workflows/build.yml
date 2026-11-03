@@ -82,7 +82,6 @@ jobs:
           files: |
             dist/*.ipk
             dist/*.apk
-            dist/*.pem
           body: |
             Build of commit `${{ github.sha }}` (${{ steps.meta.outputs.short }}), run ${{ github.run_number }}.
 
@@ -95,7 +94,6 @@ jobs:
             | `luci-i18n-static-gw-zh-cn_*_all.ipk` | Simplified Chinese UI (opkg) |
             | `luci-app-static-gw-*.apk` | OpenWrt snapshot / 25.x (apk) |
             | `luci-i18n-static-gw-zh-cn-*.apk` | Simplified Chinese UI (apk) |
-            | `luci-app-static-gw-signing-key.pem` | public key that signed the `.apk` |
 
             Both packages are architecture independent (`Architecture: all`) -
             the application contains only LuCI JS/JSON and translations, no
@@ -110,23 +108,13 @@ jobs:
 
             ### Install on apk (snapshot / 25.x)
 
-            The `.apk` is signed with this repository's CI build key. A device
-            does not trust that key by default, which shows up as
-            `ERROR: ...: UNTRUSTED signature` (exit code 99).
-
-            Trust the key once, then install normally:
-
-            ```sh
-            cp luci-app-static-gw-signing-key.pem /etc/apk/keys/
-            apk add luci-app-static-gw-*.apk
-            apk add luci-i18n-static-gw-zh-cn-*.apk   # optional, Chinese UI
-            ```
-
-            For a one-off install without trusting the key:
+            The `.apk` is signed by the OpenWrt SDK during the build; the signing
+            key is not distributed here, so a device reports
+            `ERROR: ...: UNTRUSTED signature` (exit code 99). Install with:
 
             ```sh
             apk add --allow-untrusted luci-app-static-gw-*.apk
-            apk add --allow-untrusted luci-i18n-static-gw-zh-cn-*.apk
+            apk add --allow-untrusted luci-i18n-static-gw-zh-cn-*.apk   # optional
             ```
 
             After installing, reload LuCI and open **Network → Static Address
