@@ -90,6 +90,34 @@ if [ ${#pkgs[@]} -eq 0 ]; then
 	exit 1
 fi
 
+# ------------------------------------------------------------ signing key ----
+# apk-tools 3 verifies package signatures. The package is signed with the
+# SDK's build key, which a device does not trust by default - that is what
+# produces "ERROR: ...: UNTRUSTED signature". Publish the matching public key
+# so the device only has to trust it once and can then install normally.
+if printf '%s\n' "${pkgs[@]}" | grep -q '\.apk$'; then
+	log "Exporting the signing public key"
+	key_out="$OUT/luci-app-static-gw-signing-key.pem"
+	key_found=""
+	for cand in key-build.pub public-key.pem key-build; do
+		if [ -f "$WORK/sdk/$cand" ]; then
+			key_found="$WORK/sdk/$cand"
+			break
+		fi
+	done
+	if [ -z "$key_found" ]; then
+		# Last resort: any public key the SDK left around.
+		key_found="$(find "$WORK/sdk" -maxdepth 2 -type f \
+			\( -name '*.pub' -o -name 'public-key*.pem' \) 2>/dev/null | head -n1)"
+	fi
+	if [ -n "$key_found" ] && [ -f "$key_found" ]; then
+		cp -v "$key_found" "$key_out"
+		log "Signing key published as $(basename "$key_out")"
+	else
+		log "WARNING: no SDK public key found; users must install with --allow-untrusted"
+	fi
+fi
+
 log "Result:"
 ls -lh "$OUT"
 

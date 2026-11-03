@@ -66,6 +66,7 @@ jobs:
           files: |
             dist/*.ipk
             dist/*.apk
+            dist/*.pem
           body: |
             Automatic build from commit ${{ github.sha }}.
 
@@ -73,18 +74,38 @@ jobs:
             | --- | --- |
             | `luci-app-static-gw_*_all.ipk` | OpenWrt 24.10 and older (opkg) |
             | `luci-app-static-gw-*.apk` | OpenWrt snapshot / 25.x (apk) |
+            | `luci-app-static-gw-signing-key.pem` | public key that signed the `.apk` |
 
             Both packages are architecture independent (`Architecture: all`) -
             the application contains only LuCI JS/JSON and translations, no
             compiled code, so a single file serves every device.
 
-            Install:
+            ### Install on opkg (24.10)
+
             ```sh
             opkg install luci-app-static-gw_*_all.ipk
+            ```
+
+            ### Install on apk (snapshot / 25.x)
+
+            The `.apk` is signed with this repository's CI build key. A device
+            does not trust that key by default, which shows up as
+            `ERROR: ...: UNTRUSTED signature` (exit code 99).
+
+            Trust the key once, then install normally:
+
+            ```sh
+            cp luci-app-static-gw-signing-key.pem /etc/apk/keys/
+            apk add luci-app-static-gw-*.apk
+            ```
+
+            For a one-off install without trusting the key:
+
+            ```sh
             apk add --allow-untrusted luci-app-static-gw-*.apk
             ```
 
-            The `.apk` is signed with this repository's CI build key, which a
-            device does not trust by default, hence `--allow-untrusted`.
+            After installing, reload LuCI and open **Network → Static Address
+            Binding**.
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
