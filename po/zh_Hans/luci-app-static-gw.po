@@ -202,3 +202,51 @@ msgstr "提示："
 
 msgid "No DHCP pool section for LAN could be identified, so the pool range is unknown. Bindings can still be created and edited."
 msgstr "未能识别 LAN 的 DHCP 地址池配置，因此地址池范围未知。仍可正常创建和编辑绑定。"
+
+msgid "Inherit system (leave empty)"
+msgstr "继承系统（留空）"
+
+msgid "Optional. Overrides the IPv4 gateway (DHCP option 3) for this client. Leave empty to inherit the system gateway."
+msgstr "可选。仅为该客户端覆盖 IPv4 网关（DHCP option 3）。留空则继承系统网关。"
+
+msgid "Online devices"
+msgstr "在线设备"
+
+msgid "Devices that currently hold a DHCP lease. “Make static” stages a fixed binding for the leased address; commit it with “Save & Apply”."
+msgstr "当前持有 DHCP 租约的设备。点击“设为静态”会暂存该地址的固定绑定，再点“保存并应用”生效。"
+
+msgid "IPv4 address"
+msgstr "IPv4 地址"
+
+msgid "Lease expires"
+msgstr "租约到期"
+
+msgid "Action"
+msgstr "操作"
+
+msgid "Make static"
+msgstr "设为静态"
+
+msgid "Static"
+msgstr "静态"
+
+msgid "Staged"
+msgstr "已暂存"
+
+msgid "This lease has no usable MAC address."
+msgstr "该租约没有可用的 MAC 地址。"
+
+msgid "This device already has a static binding."
+msgstr "该设备已有静态绑定。"
+
+msgid "Staged a static binding for %s. Click “Save & Apply” to commit."
+msgstr "已暂存 %s 的静态绑定。请点击“保存并应用”提交。"
+
+msgid "No active DHCP leases."
+msgstr "当前没有活动的 DHCP 租约。"
+
+msgid "infinite"
+msgstr "永久"
+
+msgid "Invalid MAC address"
+msgstr "无效的 MAC 地址"

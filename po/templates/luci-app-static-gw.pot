@@ -200,3 +200,48 @@ msgstr ""
 
 msgid "No DHCP pool section for LAN could be identified, so the pool range is unknown. Bindings can still be created and edited."
 msgstr ""
+
+msgid "Inherit system (leave empty)"
+msgstr ""
+
+msgid "Optional. Overrides the IPv4 gateway (DHCP option 3) for this client. Leave empty to inherit the system gateway."
+msgstr ""
+
+msgid "Online devices"
+msgstr ""
+
+msgid "Devices that currently hold a DHCP lease. “Make static” stages a fixed binding for the leased address; commit it with “Save & Apply”."
+msgstr ""
+
+msgid "IPv4 address"
+msgstr ""
+
+msgid "Lease expires"
+msgstr ""
+
+msgid "Action"
+msgstr ""
+
+msgid "Make static"
+msgstr ""
+
+msgid "Static"
+msgstr ""
+
+msgid "Staged"
+msgstr ""
+
+msgid "This lease has no usable MAC address."
+msgstr ""
+
+msgid "This device already has a static binding."
+msgstr ""
+
+msgid "Staged a static binding for %s. Click “Save & Apply” to commit."
+msgstr ""
+
+msgid "No active DHCP leases."
+msgstr ""
+
+msgid "infinite"
+msgstr ""

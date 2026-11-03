@@ -6,16 +6,17 @@ LuCI application for per-host static IPv4 binding with optional custom gateway (
 
 - Reuses the stock `config host` sections in `/etc/config/dhcp`.
 - Uses managed `config tag` sections (prefix `lsgw_`, marker `option lsgw_managed '1'`) to set per-host gateway/DNS.
-- Shows LAN address/mask, dynamic pool range, and the effective default gateway.
-- Grid table: Hostname / MAC / Fixed IPv4 / Gateway.
+- Shows LAN address/mask, dynamic pool range, and the effective default gateway (plus the running app version).
+- **Online devices**: reads the live DHCPv4 lease table and offers a one-click **Make static** action that stages a binding for the leased address.
+- Grid table: Hostname / MAC / Fixed IPv4 / Gateway / Status.
 - Modal editing with validation:
   - Single unicast MAC (normalized to lowercase colon format).
   - IPv4 inside the LAN subnet, not conflicting with router IP, other bindings, active leases (best-effort), or the chosen gateway.
-  - "Inherit system" vs explicit custom gateway.
-  - Optional "also send as DNS" (option 6) only when custom gateway is set.
-- Official page interoperability: new entries appear in "Network → DHCP/DNS → Static Leases"; official advanced entries (multi-MAC, DUID, IPv6, match_tag, etc.) are shown read-only.
+  - **Per-host gateway** (DHCP option 3): leave empty to inherit the system gateway, or enter an address in the LAN subnet.
+  - Optional "also send as DNS" (option 6) only when a custom gateway is set.
+- Official page interoperability: new entries appear in "Network → DHCP/DNS → Static Leases"; official advanced entries (multi-MAC, DUID, IPv6, match_tag, etc.) are shown read-only and are never written.
 - Standard LuCI save & apply flow with rollback.
-- English + Simplified Chinese.
+- English + Simplified Chinese (Chinese also works without the separate i18n package, via a built-in fallback generated from the `.po` file).
 
 ## Requirements
 
