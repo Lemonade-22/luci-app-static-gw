@@ -17,35 +17,27 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Prepare output dir
+      - name: Prepare
         run: |
-          rm -rf /tmp/artifacts
-          mkdir -p /tmp/artifacts
+          rm -rf /tmp/out
+          mkdir -p /tmp/out
 
-      - name: Build both arch=all ipk and apk (pure manual packaging)
+      - name: Package ipk (arch=all)
         run: |
           set -e
-          VERSION="1.0.0-r1"
-          PKGNAME="luci-app-static-gw"
-          OUTDIR=/tmp/artifacts
+          V="1.0.0-r1"
+          P="luci-app-static-gw"
+          D=/tmp/pkg-ipk
+          rm -rf $D
+          mkdir -p $D/CONTROL $D/usr/share/luci/menu.d $D/usr/share/rpcd/acl.d $D/www/luci-static/resources/view/network
 
-          PKGDIR=/tmp/pkg
-          rm -rf $PKGDIR
-          mkdir -p $PKGDIR/CONTROL \
-                   $PKGDIR/usr/share/luci/menu.d \
-                   $PKGDIR/usr/share/rpcd/acl.d \
-                   $PKGDIR/www/luci-static/resources/view/network
+          cp root/usr/share/luci/menu.d/luci-app-static-gw.json $D/usr/share/luci/menu.d/
+          cp root/usr/share/rpcd/acl.d/luci-app-static-gw.json $D/usr/share/rpcd/acl.d/
+          cp htdocs/luci-static/resources/view/network/static-gw.js $D/www/luci-static/resources/view/network/
 
-          cp "$GITHUB_WORKSPACE/root/usr/share/luci/menu.d/luci-app-static-gw.json" \
-             $PKGDIR/usr/share/luci/menu.d/
-          cp "$GITHUB_WORKSPACE/root/usr/share/rpcd/acl.d/luci-app-static-gw.json" \
-             $PKGDIR/usr/share/rpcd/acl.d/
-          cp "$GITHUB_WORKSPACE/htdocs/luci-static/resources/view/network/static-gw.js" \
-             $PKGDIR/www/luci-static/resources/view/network/
-
-          cat > $PKGDIR/CONTROL/control <<EOF
-Package: $PKGNAME
-Version: $VERSION
+          cat > $D/CONTROL/control <<EOF
+Package: $P
+Version: $V
 Depends: luci-base, rpcd-mod-luci
 Architecture: all
 Section: luci
@@ -53,39 +45,56 @@ Priority: optional
 Maintainer: Lemonade-22
 Description: Static Address Binding (per-host gateway/DNS)
 EOF
-
-          cat > $PKGDIR/CONTROL/postinst <<'EOP'
+          cat > $D/CONTROL/postinst <<'EOP'
 #!/bin/sh
 [ -n "${IPKG_INSTROOT}" ] || /etc/init.d/rpcd reload >/dev/null 2>&1 || true
 exit 0
 EOP
-          chmod 755 $PKGDIR/CONTROL/postinst
+          chmod 755 $D/CONTROL/postinst
+          echo "2.0" > $D/debian-binary
+          (cd $D && tar --owner=0 --group=0 -czf control.tar.gz CONTROL/ && tar --owner=0 --group=0 -czf data.tar.gz usr www)
+          (cd $D && tar --owner=0 --group=0 -czf /tmp/out/${P}_${V}_all.ipk debian-binary control.tar.gz data.tar.gz)
+          echo "ipk ready"
 
-          cat > $PKGDIR/CONTROL/prerm <<'EOP'
+      - name: Package apk (arch=all)
+        run: |
+          set -e
+          V="1.0.0-r1"
+          P="luci-app-static-gw"
+          D=/tmp/pkg-apk
+          rm -rf $D
+          mkdir -p $D/CONTROL $D/usr/share/luci/menu.d $D/usr/share/rpcd/acl.d $D/www/luci-static/resources/view/network
+
+          cp root/usr/share/luci/menu.d/luci-app-static-gw.json $D/usr/share/luci/menu.d/
+          cp root/usr/share/rpcd/acl.d/luci-app-static-gw.json $D/usr/share/rpcd/acl.d/
+          cp htdocs/luci-static/resources/view/network/static-gw.js $D/www/luci-static/resources/view/network/
+
+          cat > $D/CONTROL/control <<EOF
+Package: $P
+Version: $V
+Depends: luci-base, rpcd-mod-luci
+Architecture: all
+Section: luci
+Priority: optional
+Maintainer: Lemonade-22
+Description: Static Address Binding (per-host gateway/DNS)
+EOF
+          cat > $D/CONTROL/postinst <<'EOP'
 #!/bin/sh
+[ -n "${IPKG_INSTROOT}" ] || /etc/init.d/rpcd reload >/dev/null 2>&1 || true
 exit 0
 EOP
-          chmod 755 $PKGDIR/CONTROL/prerm
+          chmod 755 $D/CONTROL/postinst
+          echo "2.0" > $D/debian-binary
+          (cd $D && tar --owner=0 --group=0 -czf control.tar.gz CONTROL/ && tar --owner=0 --group=0 -czf data.tar.gz usr www)
+          (cd $D && tar --owner=0 --group=0 -czf /tmp/out/${P}_${V}_all.apk debian-binary control.tar.gz data.tar.gz)
+          echo "apk ready"
 
-          echo "2.0" > $PKGDIR/debian-binary
-          (cd $PKGDIR && tar --owner=0 --group=0 -czf control.tar.gz CONTROL/)
-          (cd $PKGDIR && tar --owner=0 --group=0 -czf data.tar.gz usr www)
-
-          IPK_FILE="${PKGNAME}_${VERSION}_all.ipk"
-          (cd $PKGDIR && tar --owner=0 --group=0 -czf /tmp/$IPK_FILE debian-binary control.tar.gz data.tar.gz)
-          cp /tmp/$IPK_FILE $OUTDIR/
-
-          APK_FILE="${PKGNAME}_${VERSION}_all.apk"
-          cp /tmp/$IPK_FILE $OUTDIR/$APK_FILE
-
-          echo "=== Produced packages ==="
-          ls -lh $OUTDIR/
-
-      - name: Upload build artifacts
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: packages
-          path: /tmp/artifacts/
+          path: /tmp/out/
           retention-days: 30
 
   release:
@@ -93,19 +102,18 @@ EOP
     runs-on: ubuntu-latest
     if: github.event_name != 'pull_request'
     steps:
-      - name: Download packages
+      - name: Download
         uses: actions/download-artifact@v4
         with:
           name: packages
-          path: artifacts
+          path: pkg
 
-      - name: Collect to root
+      - name: Collect
         run: |
-          find artifacts -type f \( -name "*.ipk" -o -name "*.apk" \) -exec cp {} . \;
-          echo "=== Ready for release ==="
+          find pkg -type f \( -name "*.ipk" -o -name "*.apk" \) -exec cp {} . \;
           ls -lh *.ipk *.apk 2>/dev/null || ls -lh
 
-      - name: Upload to GitHub Release (latest tag)
+      - name: Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: latest
@@ -119,9 +127,7 @@ EOP
           body: |
             Automatic build from ${{ github.sha }}
 
-            - `luci-app-static-gw_*_all.ipk` — OpenWrt 24.10 / opkg (Architecture: all)
-            - `luci-app-static-gw_*_all.apk` — OpenWrt 25+ / apk (Architecture: all)
-
-            Both are pure data packages (no compiled code).
+            - `luci-app-static-gw_*_all.ipk` — OpenWrt 24.10 / opkg (all)
+            - `luci-app-static-gw_*_all.apk` — OpenWrt 25+ / apk (all)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
