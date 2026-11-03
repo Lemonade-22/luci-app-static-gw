@@ -32,12 +32,12 @@ jobs:
         run: |
           rm -rf /tmp/artifacts
           mkdir -p /tmp/artifacts
-          echo "Cleaned output directory"
 
-      - name: Manual arch=all packaging (pure LuCI package)
+      - name: Manual arch=all packaging
         run: |
           set -e
           VERSION="${{ matrix.version }}"
+          FORMAT="${{ matrix.package_format }}"
           PKGNAME="luci-app-static-gw"
           OUTDIR=/tmp/artifacts
 
@@ -83,22 +83,24 @@ EOP
           (cd $PKGDIR && tar --owner=0 --group=0 -czf control.tar.gz CONTROL/)
           (cd $PKGDIR && tar --owner=0 --group=0 -czf data.tar.gz usr www)
 
-          IPK_FILE="${PKGNAME}_${VERSION}_all.ipk"
-          (cd $PKGDIR && tar --owner=0 --group=0 -czf /tmp/$IPK_FILE debian-binary control.tar.gz data.tar.gz)
+          if [ "$FORMAT" = "ipk" ]; then
+            IPK_FILE="${PKGNAME}_${VERSION}_all.ipk"
+            (cd $PKGDIR && tar --owner=0 --group=0 -czf /tmp/$IPK_FILE debian-binary control.tar.gz data.tar.gz)
+            cp /tmp/$IPK_FILE $OUTDIR/
+          else
+            # For apk job we still produce a real .apk name (content is identical tar for pure data package)
+            APK_FILE="${PKGNAME}_${VERSION}_all.apk"
+            (cd $PKGDIR && tar --owner=0 --group=0 -czf /tmp/$APK_FILE debian-binary control.tar.gz data.tar.gz)
+            cp /tmp/$APK_FILE $OUTDIR/
+          fi
 
-          cp /tmp/$IPK_FILE $OUTDIR/
-
-          # Always produce an .apk file as well (for the apk matrix job)
-          APK_FILE="${PKGNAME}_${VERSION}_all.apk"
-          cp /tmp/$IPK_FILE $OUTDIR/$APK_FILE
-
-          echo "=== Produced packages ==="
+          echo "=== Produced for $FORMAT ==="
           ls -lh $OUTDIR/
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: luci-app-static-gw-${{ matrix.package_format }}
+          name: packages-${{ matrix.package_format }}
           path: /tmp/artifacts/
           retention-days: 30
 
@@ -107,18 +109,25 @@ EOP
     runs-on: ubuntu-latest
     if: github.event_name != 'pull_request'
     steps:
-      - name: Download all artifacts
+      - name: Download ipk artifact
         uses: actions/download-artifact@v4
         with:
-          path: artifacts
-          merge-multiple: true
+          name: packages-ipk
+          path: artifacts-ipk
 
-      - name: List collected packages
+      - name: Download apk artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: packages-apk
+          path: artifacts-apk
+
+      - name: Collect packages to root
         run: |
-          echo "=== Files in workspace after download ==="
-          find . -type f \( -name "*.ipk" -o -name "*.apk" \) -exec ls -lh {} \; || true
-          echo "=== All files ==="
-          ls -la .
+          mkdir -p .
+          find artifacts-ipk -type f \( -name "*.ipk" -o -name "*.apk" \) -exec cp {} . \;
+          find artifacts-apk -type f \( -name "*.ipk" -o -name "*.apk" \) -exec cp {} . \;
+          echo "=== Files ready for release ==="
+          ls -lh *.ipk *.apk 2>/dev/null || ls -lh
 
       - name: Upload to GitHub Release (latest tag)
         uses: softprops/action-gh-release@v2
