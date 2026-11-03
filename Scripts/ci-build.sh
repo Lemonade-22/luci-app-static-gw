@@ -93,18 +93,46 @@ fi
 log "Result:"
 ls -lh "$OUT"
 
-# Record what we actually got so the workflow log is self-documenting.
+# -------------------------------------------------------------------------
+# Self-documentation only: dump package metadata into the log.
+# This must never fail the job - the packages are already built and this is
+# purely diagnostic. (It previously aborted the apk job because GNU tar
+# cannot read the apk-tools 3 container directly and `set -o pipefail`
+# turned that into a fatal error.)
+# -------------------------------------------------------------------------
+set +e
 for p in "${pkgs[@]}"; do
 	log "--- $p"
 	case "$p" in
 		*.ipk)
-			tar -xzOf "$p" ./control.tar.gz 2>/dev/null | tar -xzO ./control 2>/dev/null \
-				| sed -n '1,20p' || true
+			# ipk = ar/tar with control.tar.gz inside
+			tar -xzOf "$p" ./control.tar.gz 2>/dev/null \
+				| tar -xzO ./control 2>/dev/null \
+				| sed -n '1,15p'
 			;;
 		*.apk)
-			# apk is a tar based archive; .PKGINFO carries the metadata.
-			tar -xOf "$p" .PKGINFO 2>/dev/null | sed -n '1,20p' \
-				|| tar -tf "$p" | head -20
+			# apk-tools 3 wraps a tar stream in gzip/zstd; try both, then
+			# fall back to just reporting the magic bytes.
+			for decomp in "gzip -dc" "zstd -dc" "cat"; do
+				out="$($decomp "$p" 2>/dev/null | tar -tf - 2>/dev/null | head -12)"
+				if [ -n "$out" ]; then
+					echo "$out"
+					break
+				fi
+			done
+			;;
+	esac
+	# Prove the package really is architecture independent.
+	case "$p" in
+		*.ipk)
+			arch="$(tar -xzOf "$p" ./control.tar.gz 2>/dev/null \
+				| tar -xzO ./control 2>/dev/null \
+				| sed -n 's/^Architecture: //p')"
+			log "Architecture: ${arch:-unknown}"
+			[ "$arch" = "all" ] || log "WARNING: expected Architecture: all"
 			;;
 	esac
 done
+set -e
+
+log "Done: ${#pkgs[@]} package(s) in $OUT"

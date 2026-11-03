@@ -72,16 +72,19 @@ jobs:
             | File | Target |
             | --- | --- |
             | `luci-app-static-gw_*_all.ipk` | OpenWrt 24.10 and older (opkg) |
-            | `luci-app-static-gw_*_all.apk` | OpenWrt snapshot / 25.x (apk) |
+            | `luci-app-static-gw-*.apk` | OpenWrt snapshot / 25.x (apk) |
 
-            Both packages are `Architecture: all` - the application contains
-            only LuCI JS/JSON and translations, no compiled code, so one file
-            serves every device.
+            Both packages are architecture independent (`Architecture: all`) -
+            the application contains only LuCI JS/JSON and translations, no
+            compiled code, so a single file serves every device.
 
             Install:
             ```sh
             opkg install luci-app-static-gw_*_all.ipk
-            apk add --allow-untrusted luci-app-static-gw_*_all.apk
+            apk add --allow-untrusted luci-app-static-gw-*.apk
             ```
+
+            The `.apk` is signed with this repository's CI build key, which a
+            device does not trust by default, hence `--allow-untrusted`.
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
