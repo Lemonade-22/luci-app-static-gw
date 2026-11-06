@@ -13,7 +13,7 @@ const MANAGED_MARK = 'lsgw_managed';
 // Keep in sync with PKG_VERSION in the package Makefile. Shown on the page so
 // it is always obvious which build the browser actually loaded (stale caches
 // otherwise give very confusing bug reports).
-const APP_VERSION = '1.1.2';
+const APP_VERSION = '1.1.3';
 
 // --- Built-in English fallback ------------------------------------------
 // Source language is Simplified Chinese. po/en/luci-app-static-gw.po is the
@@ -91,6 +91,7 @@ const EN_MAP = {
 	"静态地址绑定": "Static Address Binding",
 	"静态绑定": "Static Bindings",
 	"默认网关：": "Default gateway: ",
+	"（未保存）": "(unsaved)",
 	"（来自接口配置）": "(from interface config)",
 };
 
@@ -713,6 +714,21 @@ return view.extend({
 				L.toArray(h.mac).map(normalizeMAC).includes(mac));
 		};
 
+		// Section ids staged by "Make static" and not committed yet. Staging
+		// re-renders the table, which rebuilds every row, so the pending
+		// markers are re-applied from this set after each click.
+		const stagedSids = new Set();
+
+		const markStagedRows = () => {
+			for (const sid of stagedSids) {
+				const row = document.getElementById('cbi-dhcp-' + sid);
+				if (!row) continue;
+				const cell = row.querySelector('td');
+				if (!cell || cell.querySelector('.lsgw-staged')) continue;
+				cell.appendChild(E('em', { 'class': 'muted lsgw-staged' }, [ ' ', _t('（未保存）') ]));
+			}
+		};
+
 		// ui.createHandlerFn() does NOT pass the event first: LuCI binds the
 		// extra arguments before it (its own implementation reaches the event
 		// via `arguments[args.length].currentTarget`), and older LuCI releases
@@ -741,6 +757,8 @@ return view.extend({
 			if (lease.ipaddr) uci.set('dhcp', sid, 'ip', lease.ipaddr);
 			uci.set('dhcp', sid, 'leasetime', 'infinite');
 
+			stagedSids.add(sid);
+
 			if (btn) {
 				btn.disabled = true;
 				btn.classList.remove('cbi-button-add');
@@ -750,6 +768,12 @@ return view.extend({
 			ui.addNotification(null, E('p',
 				_t('已暂存 %s 的静态绑定。请点击“保存并应用”提交。').format(
 					lease.ipaddr || mac)), 'info');
+
+			// Redraw the form from the (still uncommitted) UCI state so the
+			// staged binding is visible in the table immediately. reset() only
+			// re-renders - it does not reload the configuration - so the staged
+			// section survives, and nothing is written to the device here.
+			return Promise.resolve(m.reset()).then(() => { markStagedRows(); });
 		};
 
 		const leaseRows = [];

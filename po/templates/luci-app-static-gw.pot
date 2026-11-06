@@ -218,3 +218,6 @@ msgstr ""
 msgid "MAC 地址已被其他绑定使用"
 msgstr ""
 
+
+msgid "（未保存）"
+msgstr ""
