@@ -13,7 +13,7 @@ const MANAGED_MARK = 'lsgw_managed';
 // Keep in sync with PKG_VERSION in the package Makefile. Shown on the page so
 // it is always obvious which build the browser actually loaded (stale caches
 // otherwise give very confusing bug reports).
-const APP_VERSION = '1.1.1';
+const APP_VERSION = '1.1.2';
 
 // --- Built-in English fallback ------------------------------------------
 // Source language is Simplified Chinese. po/en/luci-app-static-gw.po is the
@@ -492,7 +492,10 @@ return view.extend({
 		s.addremove = true;
 		s.sortable = true;
 		s.nodescriptions = true;
-		s.max_cols = 5;
+		// Label the action column. Without this the header cell above the
+		// edit/delete buttons renders empty, so the column reads as a broken
+		// white box instead of "these are the actions".
+		s.actionstitle = _t('操作');
 		s.modaltitle = _t('编辑静态绑定');
 
 		// Hostname
@@ -669,7 +672,11 @@ return view.extend({
 		// Records that cannot be expressed losslessly stay read-only: their
 		// table cells show a hint and every write is suppressed centrally
 		// below, so nothing of the original record can be lost.
+		// Modal only: as a table column it would be a permanently blank cell
+		// for every editable binding (the hint is only ever set for records
+		// that are read-only), so it lives in the edit dialog instead.
 		o = s.option(form.DummyValue, '__state', _t('状态'));
+		o.modalonly = true;
 		o.textvalue = function(section_id) {
 			if (hostIsEditable(section_id)) return '';
 			return E('em', { class: 'muted' }, _t('只读（请在官方 DHCP 页面管理）'));
