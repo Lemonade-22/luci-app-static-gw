@@ -12,7 +12,12 @@ permissions:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    # Pinned deliberately: ubuntu-latest moved to 26.04 on 2026-11-06 and the
+    # OpenWrt 24.10 SDK's host prerequisite check there rejects the image
+    # ("Checking 'install'... failed / Please install GNU 'install'"), which
+    # fails build-ipk and therefore skips publish-release. 24.04 is the image
+    # the 1.1.0 builds were produced on.
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
@@ -43,7 +48,7 @@ jobs:
   release:
     name: publish-release
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     if: github.event_name != 'pull_request'
     steps:
       - name: Checkout
