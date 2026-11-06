@@ -13,7 +13,7 @@ const MANAGED_MARK = 'lsgw_managed';
 // Keep in sync with PKG_VERSION in the package Makefile. Shown on the page so
 // it is always obvious which build the browser actually loaded (stale caches
 // otherwise give very confusing bug reports).
-const APP_VERSION = '1.1.0';
+const APP_VERSION = '1.1.1';
 
 // --- Built-in English fallback ------------------------------------------
 // Source language is Simplified Chinese. po/en/luci-app-static-gw.po is the
@@ -706,10 +706,18 @@ return view.extend({
 				L.toArray(h.mac).map(normalizeMAC).includes(mac));
 		};
 
-		// ui.createHandlerFn invokes the handler as (ev, ...boundArgs).
-		const makeStatic = (ev, lease) => {
-			const btn = ev.target;
-			const mac = normalizeMAC(lease.macaddr);
+		// ui.createHandlerFn() does NOT pass the event first: LuCI binds the
+		// extra arguments before it (its own implementation reaches the event
+		// via `arguments[args.length].currentTarget`), and older LuCI releases
+		// appended them after the event. Reading the lease positionally is
+		// therefore build-dependent - pick it out by shape so both orders work.
+		// The lease object never has a `target` field, the event always does.
+		const makeStatic = function() {
+			const args = Array.prototype.slice.call(arguments);
+			const lease = args.find(a => a && typeof a === 'object' && !a.target);
+			const ev = args.find(a => a && typeof a === 'object' && a.target);
+			const btn = ev ? ev.target : null;
+			const mac = lease ? normalizeMAC(lease.macaddr) : null;
 			if (!mac) {
 				ui.addNotification(null, E('p', _t('该租约没有可用的 MAC 地址。')), 'warning');
 				return;
